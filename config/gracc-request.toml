@@ -1,0 +1,16 @@
+[AMQP]
+
+# Host information
+host = "amqp.example.com"
+vhost = "vhost"
+
+# Username and password for the AMQP router
+username = "amqpusername"
+password = "amqppassword"
+
+
+# Configuration for the 
+[AMQP.osg]
+
+exchange = 'gracc.osg.requests'
+queue = 'gracc.osg.requests'
