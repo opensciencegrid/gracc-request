@@ -9,9 +9,6 @@ User=gracc
 Group=gracc
 Type=simple
 Restart=on-failure
-StandardOutput=journal
-StandardError=journal
-SyslogLevel=debug
 ExecStart=/usr/bin/graccreq -c /etc/gracc/config.d/gracc-request.toml
 TimeoutStopSec=20
 
