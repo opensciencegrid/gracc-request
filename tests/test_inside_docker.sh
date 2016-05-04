@@ -17,6 +17,7 @@ pip install -r requirements.txt
 
 # Install and Start overmind
 python setup.py install
+which graccreq
 mkdir -p /etc/gracc/config.d/
 cp tests/gracc-request-test.toml /etc/gracc/config.d/gracc-request.toml
 cp config/graccreq.service /lib/systemd/system/
