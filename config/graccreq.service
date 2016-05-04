@@ -1,0 +1,19 @@
+[Unit]
+Description=GRACC Request Agent
+Documentation=https://opensciencegrid.github.io/gracc
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=gracc
+Group=gracc
+Type=simple
+Restart=on-failure
+StandardOutput=syslog+console
+StandardError=syslog+console
+SyslogLevel=debug
+ExecStart=/usr/bin/graccreq -c /etc/gracc/config.d/gracc-request.toml
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target
