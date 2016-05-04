@@ -5,9 +5,13 @@ import pika
 import sys
 from raw_replayer import RawReplayerFactory
 import toml
+import argparse
 
 
 class OverMind:
+    """
+    Top level class that listens to for requests
+    """
     
     def __init__(self, configuration):
         
@@ -17,7 +21,7 @@ class OverMind:
         self._config = {}
         with open(configuration, 'r') as config_file:
             self._config = toml.loads(config_file.read())
-        print self._config
+
     
     def run(self):
         """
@@ -69,11 +73,31 @@ class OverMind:
             return
         
         print msg_body
+        # TODO: some sort of whitelist, authentication?
         if msg_body['kind'] == 'raw':
             print "Starting raw replayer"
             
             self._pool.apply_async(RawReplayerFactory, (msg_body,))
+        elif msg_body['kind'] == 'summary':
+            print "Starting summary replayer"
         
         print
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
+        
+
+
+def main():
+    # Parse arguments
+    parser = argparse.ArgumentParser(description="GRACC Request Daemon")
+    parser.add_argument("-c", "--configuration", help="Configuration file location",
+                        default="/etc/graccreq/config.toml", dest='config')
+    args = parser.parse_args()
+    
+    
+    # Create and run the OverMind
+    overmind = OverMind(args.config)
+    overmind.run()
+    
+    
+
 
