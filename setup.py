@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup, find_packages
 from pip.req import parse_requirements
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
@@ -13,5 +13,10 @@ setup(name='graccreq',
       url='https://opensciencegrid.github.io/gracc',
       package_dir={'': 'src'},
       packages=['graccreq'],
-      install_requires=reqs
+      install_requires=reqs,
+      entry_points= {
+            'console_scripts': [
+                  'graccreq = graccreq.OverMind:main'
+            ]
+      }
 )
