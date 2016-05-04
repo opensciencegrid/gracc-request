@@ -17,11 +17,15 @@ pip install -r requirements.txt
 
 # Install and Start overmind
 python setup.py install
-graccreq -c tests/gracc-request-test.toml &
-overmind_pid=$!
+mkdir -p /etc/gracc/config.d/
+cp tests/gracc-request-test.toml /etc/gracc/config.d/gracc-request.toml
+cp config/graccreq.service /lib/systemd/system/
+systemctl start graccreq.service
 
 # Wait for the overmind to start up
 sleep 10
+journalctl -u graccreq.service
+
 python tests/test.py
 
 kill $overmind_pid
