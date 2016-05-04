@@ -1,6 +1,8 @@
 #!/bin/sh -xe
 
+
 # Install all the things
+yum install -y python
 pip install -r /gracc-request/requirements.txt
 
 # Install and Start overmind
