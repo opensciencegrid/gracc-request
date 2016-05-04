@@ -2,7 +2,7 @@
 
 
 # Install all the things
-rpm -iUvh http://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-5.noarch.rpm
+rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y update
 yum -y install python-pip
 pip install -r /gracc-request/requirements.txt
