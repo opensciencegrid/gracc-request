@@ -1,8 +1,10 @@
 from setuptools import setup, find_packages
 from pip.req import parse_requirements
+import os
 
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
-install_reqs = parse_requirements('requirements.txt', session=False)
+path=os.path.dirname(os.path.realpath(__file__))
+install_reqs = parse_requirements(os.path.join(path, 'requirements.txt'), session=False)
 reqs = [str(ir.req) for ir in install_reqs]
 
 setup(name='graccreq',
