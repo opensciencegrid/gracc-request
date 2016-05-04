@@ -5,14 +5,15 @@
 rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y update
 yum -y install python-pip
-pip install -r /gracc-request/requirements.txt
+cd /gracc-request
+pip install -r requirements.txt
 
 # Install and Start overmind
-python /gracc-request/setup.py install
-graccreq -c /gracc-request/tests/gracc-request-test.toml &
+python setup.py install
+graccreq -c tests/gracc-request-test.toml &
 overmind_pid=$!
 
-python /gracc-request/tests/test.py
+python tests/test.py
 
 kill $overmind_pid
 
