@@ -1,3 +1,6 @@
 *.pyc
 gracc-test
 MANIFEST
+build/
+dist/
+*.egg-info
