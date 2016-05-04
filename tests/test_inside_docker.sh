@@ -8,7 +8,7 @@ yum -y install python-pip
 pip install -r /gracc-request/requirements.txt
 
 # Install and Start overmind
-python setup.py install
+python /gracc-request/setup.py install
 graccreq -c /gracc-request/tests/gracc-request-test.toml &
 overmind_pid=$!
 
