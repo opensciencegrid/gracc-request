@@ -24,7 +24,7 @@ systemctl start graccreq.service
 
 # Wait for the overmind to start up
 sleep 10
-journalctl -u graccreq.service
+journalctl -u graccreq.service --no-pager
 
 python tests/test.py
 
