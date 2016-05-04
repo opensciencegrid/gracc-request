@@ -20,6 +20,8 @@ python setup.py install
 graccreq -c tests/gracc-request-test.toml &
 overmind_pid=$!
 
+# Wait for the overmind to start up
+sleep 10
 python tests/test.py
 
 kill $overmind_pid
