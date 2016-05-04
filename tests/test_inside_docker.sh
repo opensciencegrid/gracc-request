@@ -33,6 +33,5 @@ python tests/test.py
 sleep 1
 journalctl -u graccreq.service --no-pager
 
-kill $overmind_pid
 
 
