@@ -18,7 +18,7 @@ pip install -r requirements.txt
 # Install and Start overmind
 python setup.py install
 groupadd -r gracc
-useradd -r -s /bin/false -G gracc gracc
+useradd -r -s /bin/false -g gracc gracc
 
 mkdir -p /etc/gracc/config.d/
 cp tests/gracc-request-test.toml /etc/gracc/config.d/gracc-request.toml
