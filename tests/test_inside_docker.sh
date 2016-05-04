@@ -17,7 +17,6 @@ pip install -r requirements.txt
 
 # Install and Start overmind
 python setup.py install
-which graccreq
 groupadd -r gracc
 useradd -r -s /bin/false -G gracc gracc
 
