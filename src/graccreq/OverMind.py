@@ -72,16 +72,16 @@ class OverMind:
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             return
         
-        print msg_body
+        #print msg_body
         # TODO: some sort of whitelist, authentication?
         if msg_body['kind'] == 'raw':
-            print "Starting raw replayer"
+            #print "Starting raw replayer"
             
-            self._pool.apply_async(RawReplayerFactory, (msg_body,))
+            self._pool.apply_async(RawReplayerFactory, (msg_body, channel))
         elif msg_body['kind'] == 'summary':
-            print "Starting summary replayer"
+            #print "Starting summary replayer"
         
-        print
+        #print
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         
 
