@@ -47,9 +47,9 @@ class OverMind:
 
     def createConnection(self):
         credentials = pika.PlainCredentials(self._config['AMQP']['username'], self._config['AMQP']['password'])
-        parameters = pika.ConnectionParameters(self._config['AMQP']['host'],
+        self.parameters = pika.ConnectionParameters(self._config['AMQP']['host'],
                                                 5672, self._config['AMQP']['vhost'], credentials)
-        self._conn = pika.adapters.blocking_connection.BlockingConnection(parameters)
+        self._conn = pika.adapters.blocking_connection.BlockingConnection(self.parameters)
         
         self._chan = self._conn.channel()
         # Create the exchange, if it doesn't already exist
@@ -77,9 +77,10 @@ class OverMind:
         if msg_body['kind'] == 'raw':
             #print "Starting raw replayer"
             
-            self._pool.apply_async(RawReplayerFactory, (msg_body, channel))
+            self._pool.apply_async(RawReplayerFactory, (msg_body, self.parameters))
         elif msg_body['kind'] == 'summary':
             #print "Starting summary replayer"
+            pass
         
         #print
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
