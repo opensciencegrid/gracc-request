@@ -6,6 +6,7 @@ import sys
 from raw_replayer import RawReplayerFactory
 import toml
 import argparse
+import logging
 
 
 class OverMind:
@@ -21,6 +22,8 @@ class OverMind:
         self._config = {}
         with open(configuration, 'r') as config_file:
             self._config = toml.loads(config_file.read())
+        
+        logging.basicConfig(level=logging.DEBUG)
 
     
     def run(self):
@@ -68,18 +71,20 @@ class OverMind:
         try:
             msg_body = json.loads(body)
         except ValueError, e:
-            print "Unable to json parse the body of the message"
+            logging.warning("Unable to json parse the body of the message")
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             return
         
         #print msg_body
+        logging.debug("Incoming Message:")
+        logging.debug(str(msg_body))
         # TODO: some sort of whitelist, authentication?
         if msg_body['kind'] == 'raw':
-            #print "Starting raw replayer"
+            logging.debug("Received raw message, dispatching")
             
             self._pool.apply_async(RawReplayerFactory, (msg_body, self.parameters))
         elif msg_body['kind'] == 'summary':
-            #print "Starting summary replayer"
+            ogging.debug("Received summary message, dispatching")
             pass
         
         #print
