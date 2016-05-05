@@ -27,11 +27,12 @@ systemctl start graccreq.service
 
 # Wait for the overmind to start up
 sleep 10
-journalctl -u graccreq.service --no-pager
+#journalctl -u graccreq.service --no-pager
 
-python tests/test.py
+python -m unittest discover tests/unittests "test_*.py"
+
 sleep 1
-journalctl -u graccreq.service --no-pager
+journalctl -u graccreq.service --no-pager -n 20
 
 
 
