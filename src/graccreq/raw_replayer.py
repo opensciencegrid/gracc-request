@@ -2,6 +2,8 @@ import pika
 import json
 import sys
 import logging
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
 
 def RawReplayerFactory(msg, parameters):
     # Create the raw replayer class
@@ -27,6 +29,13 @@ class RawReplayer:
         self._conn = pika.adapters.blocking_connection.BlockingConnection(self.parameters)
         self._chan = self._conn.channel()
         self._chan.add_on_return_callback(self.on_return)
+        
+        try:
+            for record in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
+                logging.debug("Got record")
+        except Exception, e:
+            logging.error("Exception caught in queryES: %s" % str(e))
+            
         logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
         try:
             self._chan.basic_publish(self.msg['destination'], self.msg['routing_key'], json.dumps(toReturn),
@@ -39,7 +48,21 @@ class RawReplayer:
         
         return
         
-    def on_return(channel, method, properties, body):
+    def on_return(self, channel, method, properties, body):
         sys.stderr.write("Got returned message\n")
+        
+    def _queryElasticsearch(self, from_date, to_date, query):
+        logging.debug("Connecting to ES")
+        client = Elasticsearch()
+        
+        logging.debug("Beginning search")
+        s = Search(using=client, index='gracc-osg-*')
+        s = s.filter('range', **{'@timestamp': {'from': from_date, 'to': to_date }})
+        
+        logging.debug("About to execute query:\n%s" % str(s.to_dict()))
+        
+        for hit in s.scan():
+            yield hit
+        
         
         
