@@ -1,6 +1,5 @@
 elasticsearch==2.3.0
 elasticsearch-dsl==2.0.0
-graccreq==1.0
 pika==0.10.0
 python-dateutil==2.5.3
 six==1.10.0
