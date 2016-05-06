@@ -4,12 +4,16 @@ import sys
 import logging
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+import traceback
 
 def RawReplayerFactory(msg, parameters):
     # Create the raw replayer class
     #print "Creating raw replayer"
-    replayer = RawReplayer(msg, parameters)
-    replayer.run()
+    try:
+        replayer = RawReplayer(msg, parameters)
+        replayer.run()
+    except Exception, e:
+        logging.error(traceback.format_exc())
 
 
 class RawReplayer:
