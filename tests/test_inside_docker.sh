@@ -30,6 +30,7 @@ sleep 10
 #journalctl -u graccreq.service --no-pager
 
 # Install the test data
+yum install npm -y
 npm install elasticdump -g
 
 tar xzf tests/test_data.tar.gz
