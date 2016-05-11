@@ -30,7 +30,9 @@ sleep 10
 #journalctl -u graccreq.service --no-pager
 
 # Install the test data
-yum install npm -y
+curl -O https://nodejs.org/dist/v4.4.4/node-v4.4.4-linux-x64.tar.xz
+tar xf node-v4.4.4-linux-x64.tar.xz
+export PATH=$PATH:node-v4.4.4-linux-x64/bin
 npm install elasticdump -g
 
 tar xzf tests/test_data.tar.gz
