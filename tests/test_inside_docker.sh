@@ -29,6 +29,14 @@ systemctl start graccreq.service
 sleep 10
 #journalctl -u graccreq.service --no-pager
 
+# Install the test data
+npm install elasticdump -g
+
+tar xzf tests/test_data.tar.gz
+elasticdump --input test_data/analyzer.json --output http://localhost:9200/gracc-osg-2016.05.11 --type=analyzer
+elasticdump --input test_data/mapping.json --output http://localhost:9200/gracc-osg-2016.05.11 --type=mapping
+elasticdump --input test_data/data.json --output http://localhost:9200/gracc-osg-2016.05.11 --type=data
+
 python -m unittest discover tests/unittests "test_*.py"
 
 sleep 1
