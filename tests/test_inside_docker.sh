@@ -31,7 +31,7 @@ sleep 10
 # Install the test data
 curl -O https://nodejs.org/dist/v4.4.4/node-v4.4.4-linux-x64.tar.xz
 tar xf node-v4.4.4-linux-x64.tar.xz
-export PATH=$PATH:node-v4.4.4-linux-x64/bin
+export PATH=$PATH:`pwd`/node-v4.4.4-linux-x64/bin
 npm install elasticdump -g
 
 git clone https://github.com/djw8605/gracc-test-data.git
