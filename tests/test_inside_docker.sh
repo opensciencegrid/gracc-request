@@ -4,9 +4,8 @@
 # Install all the things
 rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 yum -y update
-yum -y install python-pip
 
-yum -y install rabbitmq-server java-1.8.0-openjdk
+yum -y install python-pip git rabbitmq-server java-1.8.0-openjdk
 rpm -Uvh https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/rpm/elasticsearch/2.3.2/elasticsearch-2.3.2.rpm
 
 systemctl start elasticsearch.service
@@ -35,10 +34,10 @@ tar xf node-v4.4.4-linux-x64.tar.xz
 export PATH=$PATH:node-v4.4.4-linux-x64/bin
 npm install elasticdump -g
 
-tar xzf tests/test_data.tar.gz
-elasticdump --input test_data/analyzer.json --output http://localhost:9200/gracc-osg-2016.05.11 --type=analyzer
-elasticdump --input test_data/mapping.json --output http://localhost:9200/gracc-osg-2016.05.11 --type=mapping
-elasticdump --input test_data/data.json --output http://localhost:9200/gracc-osg-2016.05.11 --type=data
+git clone https://github.com/djw8605/gracc-test-data.git
+pushd gracc-test-data
+bash -x ./import.sh
+popd
 
 python -m unittest discover tests/unittests "test_*.py"
 
