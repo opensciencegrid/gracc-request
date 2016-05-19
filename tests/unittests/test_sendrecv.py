@@ -3,9 +3,15 @@ import pika
 import sys
 import unittest
 from datetime import datetime, timedelta
+import string
+import random
 
 
 class TestSendRecv(unittest.TestCase):
+    
+    def _createName(self, size=6):
+        chars = string.ascii_uppercase + string.digits
+        return ''.join(random.choice(chars) for _ in range(size))
     
     def setUp(self):
         credentials = pika.PlainCredentials('guest', 'guest')
@@ -33,21 +39,34 @@ class TestSendRecv(unittest.TestCase):
         self.channel.exchange_declare(exchange='test_exchange', exchange_type='direct', durable=False, auto_delete=True)
         self.channel.queue_bind(queue='test_queue', exchange='test_exchange', routing_key='test_key')
         
+        # Create the control queue
+        control_queue = "control-queue-%s" % self._createName()
+        control_exchange = "control-exchange-%s" % self._createName()
+        self.channel.queue_declare(queue=control_queue, durable=False, exclusive=True, auto_delete=True)
+        self.channel.exchange_declare(control_exchange, exchange_type='direct', durable=False, auto_delete=True)
+        self.channel.queue_bind(queue=control_queue, exchange=condor_exchange, routing_key=None)
+        
         self.msg_json = json.loads(self.msg)
         # Set the destination
         self.msg_json['destination'] = 'test_exchange'
         self.msg_json['routing_key'] = 'test_key'
+        self.msg_json['control'] = control_exchange
         
         # Set the timerange
         self.msg_json['to'] = str(datetime.utcnow())
         self.msg_json['from'] = str(datetime.utcnow() - timedelta(days=365))
     
     def test_sendrecv(self):
-        status = {'body': ""}
+        status = {'body': "", 'control': ""}
         def getMessage(channel, method, properties, body):
             status['body'] = body
             self.channel.basic_ack(delivery_tag=method.delivery_tag)
             self.channel.stop_consuming()
+            
+        def getControlMessage(channel, method, properties, body):
+            status['control'] = body
+            self.channel.basic_ack(delivery_tag=method.delivery_tag)
+            
 
         def deadline_reached():
             #print "Deadline reached"
@@ -70,6 +89,7 @@ class TestSendRecv(unittest.TestCase):
         self.channel.start_consuming()
 
         self.assertGreater(len(status['body']), 0)
+        self.assertGreater(len(status['control']), 0)
         
         self.conn.close()
 
