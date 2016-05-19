@@ -29,7 +29,7 @@ class RawReplayer:
         
         # Send start message to control channel, if requested
         if self.msg['control']:
-            self._sendStartControlMessage(self.msg['control'])
+            self._sendStartControlMessage(self.msg['control'], self.msg['control-key'])
         
         
         # Return the results
@@ -71,12 +71,13 @@ class RawReplayer:
         for hit in s.scan():
             yield hit
         
-    def _sendStartControlMessage(exchange):
+    def _sendStartControlMessage(self, exchange, routing_key):
         
         startMsg = {'status': 'ok', 'stage': 'starting'}
         
         try:
-            self._chan.basic_publish(exchange, None, json.dumps(startmsg),
+            logging.debug("Sending start command to control exchange %s" % exchange)
+            self._chan.basic_publish(exchange, routing_key, json.dumps(startMsg),
                                  pika.BasicProperties(content_type='text/json',
                                            delivery_mode=1))
         except Exception, e:
