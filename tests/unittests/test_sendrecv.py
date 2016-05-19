@@ -44,7 +44,7 @@ class TestSendRecv(unittest.TestCase):
         control_exchange = "control-exchange-%s" % self._createName()
         self.channel.queue_declare(queue=control_queue, durable=False, exclusive=True, auto_delete=True)
         self.channel.exchange_declare(control_exchange, exchange_type='direct', durable=False, auto_delete=True)
-        self.channel.queue_bind(queue=control_queue, exchange=condor_exchange, routing_key=None)
+        self.channel.queue_bind(queue=control_queue, exchange=control_exchange, routing_key=None)
         
         self.msg_json = json.loads(self.msg)
         # Set the destination
