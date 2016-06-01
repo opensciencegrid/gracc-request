@@ -56,7 +56,7 @@ class RawReplayer:
             logging.error("Exception caught in query ES: %s" % str(e))
             
         
-        self.sendControlMessage({'status': 'ok', 'stage': 'finished'})
+        self._sendControlMessage({'status': 'ok', 'stage': 'finished'})
         
         self._conn.close()
         
