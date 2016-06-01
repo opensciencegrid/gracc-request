@@ -69,7 +69,13 @@ class TestSendRecv(unittest.TestCase):
             
         def getControlMessage(channel, method, properties, body):
             status['control'] = body
+            body_parsed = json.loads(body)
             self.channel.basic_ack(delivery_tag=method.delivery_tag)
+            if body_parsed['stage'] == "finished":
+                self.conn.remove_timeout(self.timer_id)
+                # Since everything is async, give the library 1 more second to get last messages
+                self.conn.add_timeout(1, deadline_reached)
+            
             
 
         def deadline_reached():
@@ -89,7 +95,7 @@ class TestSendRecv(unittest.TestCase):
         
 
                                                    
-        self.conn.add_timeout(10, deadline_reached)   
+        self.timer_id = self.conn.add_timeout(10, deadline_reached)   
         
         self.channel.start_consuming()
 
