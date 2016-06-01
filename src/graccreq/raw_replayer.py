@@ -5,6 +5,7 @@ import logging
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import traceback
+import replayer
 
 def RawReplayerFactory(msg, parameters):
     # Create the raw replayer class
@@ -16,24 +17,18 @@ def RawReplayerFactory(msg, parameters):
         logging.error(traceback.format_exc())
 
 
-class RawReplayer:
+class RawReplayer(replayer.Replayer):
     def __init__(self, message, parameters):
-        self.msg = message
-        self.parameters = parameters
-        self.control = False
-        if 'control' in self.msg and self.msg['control']:
-            self.control = True
-            self.control_exchange = self.msg['control']
-            self.control_key = self.msg['control-key']
+        super(RawReplayer, self).__init__(message, parameters)
+
         
     def run(self):
         logging.debug("Beggining run of RawReplayer")
-        self._conn = pika.adapters.blocking_connection.BlockingConnection(self.parameters)
-        self._chan = self._conn.channel()
-        self._chan.add_on_return_callback(self.on_return)
+        self.createConnection()
+
         
         # Send start message to control channel, if requested
-        self._sendControlMessage({'status': 'ok', 'stage': 'starting'})
+        self.sendControlMessage({'status': 'ok', 'stage': 'starting'})
         
         # Return the results
         toReturn = {}
@@ -45,7 +40,7 @@ class RawReplayer:
             
             for record in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
                 try:
-                    self._chan.basic_publish(self.msg['destination'], self.msg['routing_key'], json.dumps(toReturn),
+                    self.chan.basic_publish(self.msg['destination'], self.msg['routing_key'], json.dumps(toReturn),
                                              pika.BasicProperties(content_type='text/json',
                                              delivery_mode=1))
                 except Exception, e:
@@ -56,9 +51,9 @@ class RawReplayer:
             logging.error("Exception caught in query ES: %s" % str(e))
             
         
-        self._sendControlMessage({'status': 'ok', 'stage': 'finished'})
+        self.sendControlMessage({'status': 'ok', 'stage': 'finished'})
         
-        self._conn.close()
+        self.conn.close()
         
         return
         
@@ -78,16 +73,5 @@ class RawReplayer:
         for hit in s.scan():
             yield hit
         
-    def _sendControlMessage(self, control_msg):
-        
-        if not self.control:
-            return
-        
-        try:
-            logging.debug("Sending start command to control exchange %s" % self.control_exchange)
-            self._chan.basic_publish(self.control_exchange, self.control_key, json.dumps(control_msg),
-                                 pika.BasicProperties(content_type='text/json',
-                                           delivery_mode=1))
-        except Exception, e:
-            logging.error("Exception caught in sending start msg to control channel %s: %s" % (exchange, str(e)))
+
         
