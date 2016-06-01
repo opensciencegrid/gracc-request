@@ -61,9 +61,10 @@ class TestSendRecv(unittest.TestCase):
         self.msg_json['to'] = str((start_time + timedelta(days=1)).isoformat())
     
     def test_sendrecv(self):
-        status = {'body': "", 'control': ""}
+        status = {'body': "", 'control': "", 'num_messages': 0}
         def getMessage(channel, method, properties, body):
             status['body'] = body
+            status['num_messages'] += 1
             self.channel.basic_ack(delivery_tag=method.delivery_tag)
             
         def getControlMessage(channel, method, properties, body):
@@ -94,6 +95,7 @@ class TestSendRecv(unittest.TestCase):
 
         self.assertGreater(len(status['body']), 0)
         self.assertGreater(len(status['control']), 0)
+        self.assertEqual(status['num_messages'], 10)
         
         self.conn.close()
 
