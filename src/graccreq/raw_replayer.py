@@ -20,6 +20,11 @@ class RawReplayer:
     def __init__(self, message, parameters):
         self.msg = message
         self.parameters = parameters
+        self.control = False
+        if 'control' in self.msg and self.msg['control']:
+            self.control = True
+            self.control_exchange = self.msg['control']
+            self.control_key = self.msg['control-key']
         
     def run(self):
         logging.debug("Beggining run of RawReplayer")
@@ -28,29 +33,31 @@ class RawReplayer:
         self._chan.add_on_return_callback(self.on_return)
         
         # Send start message to control channel, if requested
-        if self.msg['control']:
-            self._sendStartControlMessage(self.msg['control'], self.msg['control-key'])
-        
+        self._sendControlMessage({'status': 'ok', 'stage': 'starting'})
         
         # Return the results
         toReturn = {}
         toReturn['status'] = 'ok'
 
         # Query elsaticsearch
+        logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
         try:
+            
             for record in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
-                logging.debug("Got record")
+                try:
+                    self._chan.basic_publish(self.msg['destination'], self.msg['routing_key'], json.dumps(toReturn),
+                                             pika.BasicProperties(content_type='text/json',
+                                             delivery_mode=1))
+                except Exception, e:
+                    logging.error("Exception caught in basic_publish: %s" % str(e))
+                    raise e
+        
         except Exception, e:
             logging.error("Exception caught in query ES: %s" % str(e))
             
-        logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
-        try:
-            self._chan.basic_publish(self.msg['destination'], self.msg['routing_key'], json.dumps(toReturn),
-                                 pika.BasicProperties(content_type='text/json',
-                                           delivery_mode=1))
-        except Exception, e:
-            logging.error("Exception caught in basic_publish: %s" % str(e))
-            
+        
+        self.sendControlMessage({'status': 'ok', 'stage': 'finished'})
+        
         self._conn.close()
         
         return
@@ -71,13 +78,14 @@ class RawReplayer:
         for hit in s.scan():
             yield hit
         
-    def _sendStartControlMessage(self, exchange, routing_key):
+    def _sendControlMessage(self, control_msg):
         
-        startMsg = {'status': 'ok', 'stage': 'starting'}
+        if not self.control:
+            return
         
         try:
-            logging.debug("Sending start command to control exchange %s" % exchange)
-            self._chan.basic_publish(exchange, routing_key, json.dumps(startMsg),
+            logging.debug("Sending start command to control exchange %s" % self.control_exchange)
+            self._chan.basic_publish(self.control_exchange, self.control_key, json.dumps(control_msg),
                                  pika.BasicProperties(content_type='text/json',
                                            delivery_mode=1))
         except Exception, e:
