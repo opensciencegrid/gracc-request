@@ -64,8 +64,9 @@ class OverMind:
         
         
     def _receiveMsg(self, channel, method_frame, header_frame, body):
-        print method_frame.delivery_tag
-        print body
+        """
+        Receive messages from the RabbitMQ queue
+        """
         msg_body = {}
         
         try:
@@ -75,19 +76,17 @@ class OverMind:
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             return
         
-        #print msg_body
         logging.debug("Incoming Message:")
         logging.debug(str(msg_body))
         # TODO: some sort of whitelist, authentication?
         if msg_body['kind'] == 'raw':
             logging.debug("Received raw message, dispatching")
-            
             self._pool.apply_async(RawReplayerFactory, (msg_body, self.parameters))
+            
         elif msg_body['kind'] == 'summary':
-            ogging.debug("Received summary message, dispatching")
+            logging.debug("Received summary message, dispatching")
             pass
         
-        #print
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         
 
