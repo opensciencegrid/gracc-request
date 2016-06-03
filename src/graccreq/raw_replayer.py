@@ -34,19 +34,11 @@ class RawReplayer(replayer.Replayer):
         toReturn = {}
         toReturn['status'] = 'ok'
 
-        # Query elsaticsearch
+        # Query elsaticsearch and send the data to the destination
         logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
         try:
-            
             for record in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
-                try:
-                    self.chan.basic_publish(self.msg['destination'], self.msg['routing_key'], json.dumps(toReturn),
-                                             pika.BasicProperties(content_type='text/json',
-                                             delivery_mode=1))
-                except Exception, e:
-                    logging.error("Exception caught in basic_publish: %s" % str(e))
-                    raise e
-        
+                self.sendMessage(json.dumps(record.to_dict()))
         except Exception, e:
             logging.error("Exception caught in query ES: %s" % str(e))
             
