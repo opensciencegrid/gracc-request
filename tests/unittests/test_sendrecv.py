@@ -52,7 +52,7 @@ class TestSendRecv(unittest.TestCase):
         self.msg_json['destination'] = 'test_exchange'
         self.msg_json['routing_key'] = 'test_key'
         self.msg_json['control'] = control_exchange
-        self.msg_json['control-key'] = routing_key
+        self.msg_json['control_key'] = routing_key
         
         # Set the timerange
         start_time = datetime(2016, 5, 10)
