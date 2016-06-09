@@ -16,7 +16,7 @@ class Replayer(object):
         if 'control' in self.msg and self.msg['control']:
             self.control = True
             self.control_exchange = self.msg['control']
-            self.control_key = self.msg['control-key']
+            self.control_key = self.msg['control_key']
         
         self.conn = None
             

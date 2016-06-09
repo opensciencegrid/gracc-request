@@ -57,7 +57,7 @@ class RawReplayer(replayer.Replayer):
         client = Elasticsearch()
         
         logging.debug("Beginning search")
-        s = Search(using=client, index='gracc-osg-*')
+        s = Search(using=client, index='gracc.osg.raw-*')
         s = s.filter('range', **{'@timestamp': {'from': from_date, 'to': to_date }})
         
         logging.debug("About to execute query:\n%s" % str(s.to_dict()))

@@ -52,10 +52,10 @@ class TestSendRecv(unittest.TestCase):
         self.msg_json['destination'] = 'test_exchange'
         self.msg_json['routing_key'] = 'test_key'
         self.msg_json['control'] = control_exchange
-        self.msg_json['control-key'] = routing_key
+        self.msg_json['control_key'] = routing_key
         
         # Set the timerange
-        start_time = datetime(2016, 5, 10)
+        start_time = datetime(2016, 6, 1)
         
         self.msg_json['from'] = str(start_time.isoformat())
         self.msg_json['to'] = str((start_time + timedelta(days=1)).isoformat())
@@ -101,7 +101,7 @@ class TestSendRecv(unittest.TestCase):
 
         self.assertGreater(len(status['body']), 0)
         self.assertGreater(len(status['control']), 0)
-        self.assertEqual(status['num_messages'], 10)
+        self.assertEqual(status['num_messages'], 100)
         
         self.conn.close()
 
