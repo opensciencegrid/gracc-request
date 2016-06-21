@@ -53,7 +53,7 @@ class Replayer(object):
         Send a contorl message to the control exchange defined in the query
         message.
         
-        :param str control_msg: Stringified message to send to control exchange.  Should be json.
+        :param dict control_msg: Dict message to send to control exchange.
         
         """
         if not self.control:

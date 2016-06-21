@@ -29,10 +29,6 @@ class RawReplayer(replayer.Replayer):
         
         # Send start message to control channel, if requested
         self.sendControlMessage({'status': 'ok', 'stage': 'starting'})
-        
-        # Return the results
-        toReturn = {}
-        toReturn['status'] = 'ok'
 
         # Query elsaticsearch and send the data to the destination
         logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
