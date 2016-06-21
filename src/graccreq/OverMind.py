@@ -4,6 +4,7 @@ import json
 import pika
 import sys
 from raw_replayer import RawReplayerFactory
+from summary_replayer import SummaryReplayerFactory
 import toml
 import argparse
 import logging
@@ -85,6 +86,7 @@ class OverMind:
             
         elif msg_body['kind'] == 'summary':
             logging.debug("Received summary message, dispatching")
+            self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters))
             pass
         
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
