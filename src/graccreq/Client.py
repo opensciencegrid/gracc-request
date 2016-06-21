@@ -8,8 +8,19 @@ import random
 
 
 class Client:
+    """
+    Client application to the GRACC Request daemons
+    """
     
     def __init__(self, exchange, host="localhost", username="guest", password="guest"):
+        """
+        Initialization function
+            
+        :param str exchange: Exchange to send requests to.
+        :param str host: Host to connect AMQP.  Default: localhost
+        :param str username: username to use for AMQP
+        :param str password: password to use for AMQP
+        """
         
         self.host = host
         self.username = username
@@ -22,6 +33,9 @@ class Client:
         
         
     def _createQueues(self):
+        """
+        Create the necessary queues and exchanges for data and control messages to be received.
+        """
         if not self.conn:
             self._createConn()
             
@@ -47,16 +61,25 @@ class Client:
         
         
     def _createName(self, size=6):
+        """
+        Create a unique string name.
+        """
         chars = string.ascii_uppercase + string.digits
         return ''.join(random.choice(chars) for _ in range(size))
     
     def _createConn(self):
+        """
+        Initiate the remote connection
+        """
         credentials = pika.PlainCredentials(self.username, self.password)
         parameters = pika.ConnectionParameters(self.host,
                                                 5672, '/', credentials)
         self.conn = pika.adapters.blocking_connection.BlockingConnection(parameters)
         
     def _getControlMessage(self, channel, method, properties, body):
+        """
+        Receives control messages from the remote agents
+        """
         # Receives the control messages
         body_parsed = json.loads(body)
         self.channel.basic_ack(delivery_tag=method.delivery_tag)
@@ -67,6 +90,9 @@ class Client:
             self.conn.add_timeout(1, deadline_reached)
         
     def _getDataMessage(self, channel, method, properties, body):
+        """
+        Receives the data messages
+        """
         self.channel.basic_ack(delivery_tag=method.delivery_tag)
         self.messages_received += 1
         self.callbackDataMessage(body)
@@ -86,6 +112,14 @@ class Client:
         
         
     def query(self, from_date, to_date, kind, getMessage):
+        """
+        Query the remote agents for data.
+        
+        :param datetime from_date: A python datetime object representing the begininng of the query's time interval.
+        :param datetime to_date: A python datetime object representing the end of the query's time interval
+        :param str kind: The kind of request.  Either "raw" or "summary"
+        :param function getMessage: A callback to send the received records.
+        """
         
         # Create the connection
         self._createConn()
@@ -113,11 +147,8 @@ class Client:
                               pika.BasicProperties(content_type='text/json',
                                                    delivery_mode=1))
         
-        # If we don't get any messages for 10 seconds, then stop the client                                       
-        def deadline_reached():
-            if self.messages_received == 0:
-                self.channel.stop_consuming()
-                                                   
+
+        # Begin the checkStatus timer
         self.timer_id = self.conn.add_timeout(10, self._checkStatus)   
         
         self.channel.start_consuming()
