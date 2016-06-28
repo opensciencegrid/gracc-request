@@ -37,11 +37,11 @@ exit 0
 
 
 %build
-%py2_build
+%{__py2_build}
 
 
 %install
-%py2_install
+%{__py2_install}
 
 
 install -d -m 0755 %{_sysconfdir}/graccreq/config.d/
