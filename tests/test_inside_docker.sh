@@ -3,7 +3,7 @@
 
 # Install all the things
 rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-curl -O /etc/yum.repos.d/djw8605-GRACC-epel-7.repo https://copr.fedorainfracloud.org/coprs/djw8605/GRACC/repo/epel-7/djw8605-GRACC-epel-7.repo 
+curl -o /etc/yum.repos.d/djw8605-GRACC-epel-7.repo https://copr.fedorainfracloud.org/coprs/djw8605/GRACC/repo/epel-7/djw8605-GRACC-epel-7.repo 
 yum -y update
 
 yum -y install python-pip git rabbitmq-server java-1.8.0-openjdk elasticsearch-dsl rpm-build
@@ -26,7 +26,7 @@ git archive --format=tar --prefix=gracc-request-${package_version}/ HEAD  | gzip
 popd
 
 # Build the RPM
-rpmbuild --define '_topdir /tmp/rpmbuild' -ba /tmp/rpmbuild/SPECS/htcondor-ce.spec
+rpmbuild --define '_topdir /tmp/rpmbuild' -ba /tmp/rpmbuild/SPECS/gracc-request.spec
 
 yum localinstall -y /tmp/rpmbuild/RPMS/noarch/gracc-request*
 
