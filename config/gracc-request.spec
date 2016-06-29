@@ -55,8 +55,8 @@ install -m 0744 config/graccreq.service %{_unitdir}
 %files
 %{python2_sitelib}/graccreq
 %{_bindir}/*
-%{_unitdir}/*
-%config %{_sysconfdir}/*
+%{_unitdir}/graccreq.service
+%config %{_sysconfdir}/graccreq/config.d/gracc-request.tom
 
 %doc
 
