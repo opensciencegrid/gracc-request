@@ -10,6 +10,11 @@ BuildArch:      noarch
 
 BuildRequires:  python-setuptools
 BuildRequires:  systemd
+BuildRequires:  python-srpm-macros 
+BuildRequires:  python-rpm-macros 
+BuildRequires:  python2-rpm-macros 
+BuildRequires:  epel-rpm-macros
+BuildRequires:  systemd
 Requires:       python2-pika
 Requires:       python-elasticsearch-dsl
 Requires:       python-dateutil
