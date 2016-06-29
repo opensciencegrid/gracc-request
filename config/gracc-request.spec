@@ -6,6 +6,7 @@ Summary:        GRACC Listener for Raw and Summary Records
 License:        ASL 2.0
 URL:            https://opensciencegrid.github.io/gracc/
 Source0:        gracc-request-%{version}.tar.gz
+BuildArch:      noarch
 
 BuildRequires:  python-setuptools
 BuildRequires:  systemd
@@ -37,11 +38,11 @@ exit 0
 
 
 %build
-%{__py2_build}
+%py2_build
 
 
 %install
-%{__py2_install}
+%py2_install
 
 
 install -d -m 0755 %{_sysconfdir}/graccreq/config.d/
