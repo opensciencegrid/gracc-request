@@ -34,7 +34,7 @@ systemctl start graccreq.service
 
 # Wait for the overmind to start up
 sleep 10
-#journalctl -u graccreq.service --no-pager
+journalctl -u graccreq.service --no-pager
 
 # Install the test data
 curl -O https://nodejs.org/dist/v4.4.4/node-v4.4.4-linux-x64.tar.xz
