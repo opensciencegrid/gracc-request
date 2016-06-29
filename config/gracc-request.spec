@@ -18,6 +18,7 @@ BuildRequires:  systemd
 Requires:       python2-pika
 Requires:       python-elasticsearch-dsl
 Requires:       python-dateutil
+Requires:       python-toml
 Requires(pre):  shadow-utils
 
 %description
