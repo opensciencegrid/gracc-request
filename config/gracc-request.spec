@@ -48,7 +48,7 @@ exit 0
 install -d -m 0755 %{_sysconfdir}/graccreq/config.d/
 install -m 0744 config/gracc-request.toml %{_sysconfdir}/graccreq/config.d/gracc-request.toml
 install -d -m 0755 %{_unitdir}
-install -m 0744 config/graccreq.service %{_unitdir}
+install -m 0744 config/graccreq.service %{_unitdir}/
 
 
 
@@ -56,7 +56,7 @@ install -m 0744 config/graccreq.service %{_unitdir}
 %{python2_sitelib}/graccreq
 %{_bindir}/*
 %{_unitdir}/graccreq.service
-%config %{_sysconfdir}/graccreq/config.d/gracc-request.tom
+%config %{_sysconfdir}/graccreq/config.d/gracc-request.toml
 
 %doc
 
