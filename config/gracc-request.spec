@@ -38,11 +38,11 @@ exit 0
 
 
 %build
-%py2_build
+%{__python2} setup.py build
 
 
 %install
-%py2_install
+%{__python2} setup.py install -O1 --skip-build --root %{buildroot}
 
 
 install -d -m 0755 %{_sysconfdir}/graccreq/config.d/
