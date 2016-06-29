@@ -45,10 +45,10 @@ exit 0
 %{py2_install}
 
 
-install -d -m 0755 %{_sysconfdir}/graccreq/config.d/
-install -m 0744 config/gracc-request.toml %{_sysconfdir}/graccreq/config.d/gracc-request.toml
-install -d -m 0755 %{_unitdir}
-install -m 0744 config/graccreq.service %{_unitdir}/
+install -d -m 0755 $RPM_BUILD_ROOT/%{_sysconfdir}/graccreq/config.d/
+install -m 0744 config/gracc-request.toml $RPM_BUILD_ROOT/%{_sysconfdir}/graccreq/config.d/gracc-request.toml
+install -d -m 0755 $RPM_BUILD_ROOT/%{_unitdir}
+install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 
