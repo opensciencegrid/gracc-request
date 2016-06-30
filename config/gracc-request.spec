@@ -59,9 +59,10 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %files
+%defattr(-, gracc, gracc)
 %{python2_sitelib}/graccreq
 %{python2_sitelib}/graccreq-%{version}-py2.?.egg-info
-%{_bindir}/*
+%attr(755, root, root) %{_bindir}/*
 %{_unitdir}/graccreq.service
 %config %{_sysconfdir}/graccreq/config.d/gracc-request.toml
 
