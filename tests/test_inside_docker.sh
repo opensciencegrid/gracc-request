@@ -53,7 +53,7 @@ pushd gracc-request
 python -m unittest discover tests/unittests "test_*.py"
 popd
 
-sleep 1
+sleep 30
 journalctl -u graccreq.service --no-pager -n 20
 
 
