@@ -35,7 +35,7 @@ GRACC Listener for Raw and Summary Records
 %pre
 getent group gracc >/dev/null || groupadd -r gracc
 getent passwd gracc >/dev/null || \
-    useradd -r -s -g gracc -d /tmp -s /sbin/nologin \
+    useradd -r -g gracc -d /tmp -s /sbin/nologin \
     -c "GRACC Services Account" gracc
 exit 0
 
