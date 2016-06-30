@@ -30,6 +30,9 @@ rpmbuild --define '_topdir /tmp/rpmbuild' -ba /tmp/rpmbuild/SPECS/gracc-request.
 
 yum localinstall -y /tmp/rpmbuild/RPMS/noarch/gracc-request*
 
+# Copy in the test configuration
+cp -f gracc-request/tests/gracc-request-test.toml /etc/graccreq/config.d/gracc-request.toml
+
 systemctl start graccreq.service
 
 # Wait for the overmind to start up
