@@ -36,6 +36,8 @@ systemctl start graccreq.service
 sleep 10
 journalctl -u graccreq.service --no-pager
 
+ls -l /usr/bin/graccreq
+
 # Install the test data
 curl -O https://nodejs.org/dist/v4.4.4/node-v4.4.4-linux-x64.tar.xz
 tar xf node-v4.4.4-linux-x64.tar.xz
