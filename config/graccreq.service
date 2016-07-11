@@ -9,7 +9,7 @@ User=gracc
 Group=gracc
 Type=simple
 Restart=on-failure
-ExecStart=/usr/bin/graccreq -c /etc/gracc/config.d/gracc-request.toml
+ExecStart=/usr/bin/graccreq -c /etc/graccreq/config.d/gracc-request.toml
 TimeoutStopSec=20
 
 [Install]
