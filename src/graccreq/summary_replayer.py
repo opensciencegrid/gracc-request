@@ -54,7 +54,7 @@ class SummaryReplayer(replayer.Replayer):
         
     def _queryElasticsearch(self, from_date, to_date, query):
         logging.debug("Connecting to ES")
-        client = Elasticsearch()
+        client = Elasticsearch(timeout=300)
         
         # For summaries, we only summarize full days, so strip the time from the from & to
         from_date = dateutil.parser.parse(from_date).date()

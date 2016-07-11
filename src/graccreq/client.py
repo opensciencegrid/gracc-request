@@ -12,7 +12,7 @@ class Client:
     Client application to the GRACC Request daemons
     """
     
-    def __init__(self, exchange, host="localhost", username="guest", password="guest"):
+    def __init__(self, exchange, host="localhost", username="guest", password="guest", vhost="/"):
         """
         Initialization function
             
@@ -26,6 +26,7 @@ class Client:
         self.username = username
         self.password = password
         self.exchange = exchange
+        self.vhost = vhost
         
         self.conn = None
         self.messages_received = 0
@@ -73,7 +74,7 @@ class Client:
         """
         credentials = pika.PlainCredentials(self.username, self.password)
         parameters = pika.ConnectionParameters(self.host,
-                                                5672, '/', credentials)
+                                                5672, self.vhost, credentials)
         self.conn = pika.adapters.blocking_connection.BlockingConnection(parameters)
         
     def _getControlMessage(self, channel, method, properties, body):
@@ -107,7 +108,7 @@ class Client:
             self.channel.stop_consuming()
         else:
             self.last_messages = self.messages_received
-            self.timer_id = self.conn.add_timeout(10, self._checkStatus)   
+            self.timer_id = self.conn.add_timeout(300, self._checkStatus)   
             
         
         
@@ -149,7 +150,7 @@ class Client:
         
 
         # Begin the checkStatus timer
-        self.timer_id = self.conn.add_timeout(10, self._checkStatus)   
+        self.timer_id = self.conn.add_timeout(300, self._checkStatus)   
         
         self.channel.start_consuming()
         
