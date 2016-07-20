@@ -12,11 +12,12 @@ class Client:
     Client application to the GRACC Request daemons
     """
     
-    def __init__(self, exchange, host="localhost", username="guest", password="guest", vhost="/"):
+    def __init__(self, exchange, routing_key, host="localhost", username="guest", password="guest", vhost="/"):
         """
         Initialization function
             
         :param str exchange: Exchange to send requests to.
+        :param str routing_key: Routing key to bind to.
         :param str host: Host to connect AMQP.  Default: localhost
         :param str username: username to use for AMQP
         :param str password: password to use for AMQP
@@ -26,6 +27,7 @@ class Client:
         self.username = username
         self.password = password
         self.exchange = exchange
+        self.routing_key = routing_key
         self.vhost = vhost
         
         self.conn = None
@@ -33,9 +35,11 @@ class Client:
         self.last_messages = 0
         
         
-    def _createQueues(self):
+    def _createQueues(self, create_data):
         """
         Create the necessary queues and exchanges for data and control messages to be received.
+        
+        :param boolean create_data: Whether to create the data exchanges or not.  Setting to true will create the data channels.
         """
         if not self.conn:
             self._createConn()
@@ -43,13 +47,14 @@ class Client:
         # Create a new channel
         self.channel = self.conn.channel()
         
-        # Create the receive queue
-        self.data_queue = "data-queue-%s" % self._createName()
-        self.data_exchange = "data-exchange-%s" % self._createName()
-        self.data_key = "data-key-%s" % self._createName()
-        self.channel.queue_declare(queue=self.data_queue, durable=False, exclusive=True, auto_delete=True)
-        self.channel.exchange_declare(exchange=self.data_exchange, exchange_type='direct', durable=False, auto_delete=True)
-        self.channel.queue_bind(queue=self.data_queue, exchange=self.data_exchange, routing_key=self.data_key)
+        if create_data:
+            # Create the receive queue
+            self.data_queue = "data-queue-%s" % self._createName()
+            self.data_exchange = "data-exchange-%s" % self._createName()
+            self.data_key = "data-key-%s" % self._createName()
+            self.channel.queue_declare(queue=self.data_queue, durable=False, exclusive=True, auto_delete=True)
+            self.channel.exchange_declare(exchange=self.data_exchange, exchange_type='direct', durable=False, auto_delete=True)
+            self.channel.queue_bind(queue=self.data_queue, exchange=self.data_exchange, routing_key=self.data_key)
         
         # Create the control queue
         self.control_queue = "control-queue-%s" % self._createName()
@@ -112,7 +117,7 @@ class Client:
             
         
         
-    def query(self, from_date, to_date, kind, getMessage):
+    def query(self, from_date, to_date, kind, getMessage=None, destination_exchange=None, destination_key=None):
         """
         Query the remote agents for data.
         
@@ -120,30 +125,48 @@ class Client:
         :param datetime to_date: A python datetime object representing the end of the query's time interval
         :param str kind: The kind of request.  Either "raw" or "summary"
         :param function getMessage: A callback to send the received records.
+        :param str destination_exchange: The name of the exchange to send data to.
+        :param str destination_key: The routing key to use for destination.
+        
+        Either getMessage is None, or both destination_exchange and destination_key are None.  getMessage is used
+        to retrieve data inline, while destination_exchange and destination_key are used to route traffic elsewhere.
+        
+        destination_exchange has to already exist.
         """
+        
+        # Check that we don't have conflicting variable states
+        assert (getMessage == None) or ((destination_exchange == None) and (destination_key == None))
+        
+        # Convinence variable to see if we are receiving the data, or not
+        remote_destination = (destination_exchange != None) and (destination_key != None)
         
         # Create the connection
         self._createConn()
-        self._createQueues()
+        self._createQueues(not remote_destination)
         
         # First, create the msg
         msg = {}
         msg["from"] = from_date.isoformat()
         msg["to"] = to_date.isoformat()
         msg["kind"] = kind
-        msg["destination"] = self.data_exchange
-        msg["routing_key"] = self.data_key
+        if remote_destination:
+            msg["destination"] = destination_exchange
+            msg["routing_key"] = destination_key
+        else:
+            msg["destination"] = self.data_exchange
+            msg["routing_key"] = self.data_key
         msg["control"] = self.control_exchange
         msg["control_key"] = self.control_key
         
         # Now listen to the queues
         self.callbackDataMessage = getMessage
-        self.channel.basic_consume(self._getDataMessage, self.data_queue)
         self.channel.basic_consume(self._getControlMessage, self.control_queue)
+        if not remote_destination:
+            self.channel.basic_consume(self._getDataMessage, self.data_queue)
 
         # Send the message
         self.channel.basic_publish(self.exchange,
-                              'gracc.osg.requests',
+                              self.routing_key,
                               json.dumps(msg),
                               pika.BasicProperties(content_type='text/json',
                                                    delivery_mode=1))
