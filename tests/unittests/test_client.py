@@ -35,6 +35,6 @@ class TestClient(unittest.TestCase):
         def getMessage(msg):
             status['num_messages'] += 1
             
-        client = Client("gracc.osg.requests")
+        client = Client("gracc.osg.requests", "gracc.osg.requests")
         client.query(start_time, end_time, 'raw', getMessage)
         self.assertGreater(status['num_messages'], 1)
