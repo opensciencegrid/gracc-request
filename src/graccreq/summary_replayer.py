@@ -62,10 +62,10 @@ class SummaryReplayer(replayer.Replayer):
         
         logging.debug("Beginning search")
         s = Search(using=client, index='gracc.osg.raw-*')
-        s = s.filter('range', **{'@timestamp': {'from': from_date, 'to': to_date }})
+        s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
         
         # Fill in the unique terms and metrics
-        unique_terms = ["@timestamp", "VOName", "Processors", "ResourceType", "CommonName", "Host_description", "Resource_ExitCode", "Grid"]
+        unique_terms = ["EndTime", "VOName", "Processors", "ResourceType", "CommonName", "Host_description", "Resource_ExitCode", "Grid"]
         metrics = ["WallDuration", "CpuDuration_user", "CpuDuration_system"]
 
         # If the terms are missing, set as "N/A"
@@ -115,10 +115,10 @@ class SummaryReplayer(replayer.Replayer):
         	
         
         # We only want to hold onto 1 day's worth of summaries
-        print len(response.aggregations['@timestamp']['buckets'])
-        for day in response.aggregations['@timestamp']['buckets']:
+        print len(response.aggregations['EndTime']['buckets'])
+        for day in response.aggregations['EndTime']['buckets']:
             data = []
-            recurseBucket({"timestamp": day['key_as_string']}, day, 1, data)
+            recurseBucket({"EndTime": day['key_as_string']}, day, 1, data)
             yield data
     
 
