@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        1.1
+Version:        1.2
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -71,6 +71,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+
+* Fri Jul 29 2016 Derek Weitzel <dweitzel@cse.unl.edu> 1.2-1
+- Use EndTime for summarized range
 
 * Wed Jul 20 2016 Derek Weitzel <dweitzel@cse.unl.edu> 1.1-1
 - Updating the client with new arguments for summarizer
