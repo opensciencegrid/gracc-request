@@ -58,7 +58,7 @@ class TestSendRecv(unittest.TestCase):
         start_time = datetime(2016, 6, 1)
         
         self.msg_json['from'] = str(start_time.isoformat())
-        self.msg_json['to'] = str((start_time + timedelta(days=1)).isoformat())
+        self.msg_json['to'] = str((start_time + timedelta(days=32)).isoformat())
     
     def test_sendrecv(self):
         status = {'body': "", 'control': "", 'num_messages': 0}
