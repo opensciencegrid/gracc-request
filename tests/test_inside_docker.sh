@@ -52,12 +52,16 @@ pushd gracc-test-data
 bash -x ./import.sh
 popd
 
+# Do not die on failure.
 pushd gracc-request
+set +e
 python -m unittest discover tests/unittests "test_*.py"
+test_exit=$?
+set -e
 popd
 
 sleep 30
-journalctl -u graccreq.service --no-pager -n 20
+journalctl -u graccreq.service --no-pager -n 100
 
-
+exit $test_exit
 
