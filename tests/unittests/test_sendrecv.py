@@ -101,7 +101,7 @@ class TestSendRecv(unittest.TestCase):
 
         self.assertGreater(len(status['body']), 0)
         self.assertGreater(len(status['control']), 0)
-        self.assertEqual(status['num_messages'], 100)
+        self.assertGreater(status['num_messages'], 100)
         
         self.conn.close()
 
