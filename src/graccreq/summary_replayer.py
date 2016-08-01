@@ -61,7 +61,7 @@ class SummaryReplayer(replayer.Replayer):
         to_date = dateutil.parser.parse(to_date).date()
         
         logging.debug("Beginning search")
-        s = Search(using=client, index='gracc.osg.raw-*')
+        s = Search(using=client, index='gracc.osg.raw0-*')
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
         
         # Fill in the unique terms and metrics
