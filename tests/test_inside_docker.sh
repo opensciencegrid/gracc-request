@@ -60,8 +60,8 @@ test_exit=$?
 set -e
 popd
 
-sleep 30
-journalctl -u graccreq.service --no-pager
+sleep 60
+journalctl -u graccreq.service --no-pager -n 1000
 
 exit $test_exit
 
