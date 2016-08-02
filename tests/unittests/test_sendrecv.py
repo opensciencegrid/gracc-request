@@ -58,7 +58,7 @@ class TestSendRecv(unittest.TestCase):
         start_time = datetime(2016, 6, 1)
         
         self.msg_json['from'] = str(start_time.isoformat())
-        self.msg_json['to'] = str((start_time + timedelta(days=1)).isoformat())
+        self.msg_json['to'] = str((start_time + timedelta(days=32)).isoformat())
     
     def test_sendrecv(self):
         status = {'body': "", 'control': "", 'num_messages': 0}
@@ -101,7 +101,7 @@ class TestSendRecv(unittest.TestCase):
 
         self.assertGreater(len(status['body']), 0)
         self.assertGreater(len(status['control']), 0)
-        self.assertEqual(status['num_messages'], 100)
+        self.assertGreater(status['num_messages'], 100)
         
         self.conn.close()
 

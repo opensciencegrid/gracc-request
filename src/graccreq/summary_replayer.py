@@ -61,19 +61,19 @@ class SummaryReplayer(replayer.Replayer):
         to_date = dateutil.parser.parse(to_date).date()
         
         logging.debug("Beginning search")
-        s = Search(using=client, index='gracc.osg.raw-*')
+        s = Search(using=client, index='gracc.osg.raw0-*')
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
         
         # Fill in the unique terms and metrics
-        unique_terms = ["EndTime", "VOName", "Processors", "ResourceType", "CommonName", "Host_description", "Resource_ExitCode", "Grid"]
+        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["Processors", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"]]
         metrics = ["WallDuration", "CpuDuration_user", "CpuDuration_system"]
 
         # If the terms are missing, set as "N/A"
-        curBucket = s.aggs.bucket(unique_terms[0], 'date_histogram', field=unique_terms[0], interval="day")
+        curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
         new_unique_terms = unique_terms[1:]
 
         for term in new_unique_terms:
-        	curBucket = curBucket.bucket(term, 'terms', field=term, missing="N/A")
+        	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1])
 
         for metric in metrics:
         	curBucket.metric(metric, 'sum', field=metric)
@@ -89,7 +89,7 @@ class SummaryReplayer(replayer.Replayer):
             :param bucket curBucket: A elasticsearch bucket object
             :param int index: Index of the unique_terms that we are processing
             """
-            curTerm = unique_terms[index]
+            curTerm = unique_terms[index][0]
 
             # Check if we are at the end of the list
             if not curBucket[curTerm]['buckets']:
