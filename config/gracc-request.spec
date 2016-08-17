@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        1.3
+Version:        1.4
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -71,6 +71,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+
+* Tue Aug 02 2016 Derek Weitzel <dweitzel@cse.unl.edu> 1.4-1
+- Fix Summary metrics accounting
 
 * Tue Aug 02 2016 Derek Weitzel <dweitzel@cse.unl.edu> 1.3-1
 - Fix summary records for new indexes
