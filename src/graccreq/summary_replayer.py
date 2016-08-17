@@ -104,7 +104,7 @@ class SummaryReplayer(replayer.Replayer):
                     if index == (len(unique_terms) - 1):
                         # reached the end of the unique terms
                         for metric in metrics:
-                            nowData[curTerm] = bucket[metric].value
+                            nowData[metric] = bucket[metric].value
                             # Add the doc count
                         nowData["Count"] = bucket['doc_count']
                         data.append(nowData)
