@@ -53,7 +53,7 @@ bash -x ./import.sh
 popd
 
 # Do not die on failure.
-pushd gracc-request/tests/unittests
+pushd gracc-request/
 set +e
 python -m unittest discover tests/unittests "test_*.py"
 test_exit=$?
