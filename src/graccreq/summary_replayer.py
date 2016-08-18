@@ -69,14 +69,14 @@ class SummaryReplayer(replayer.Replayer):
         metrics = ["WallDuration", "CpuDuration_user", "CpuDuration_system", "CoreHours"]
 
         # If the terms are missing, set as "N/A"
-        curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
+        curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day", size=0)
         new_unique_terms = unique_terms[1:]
 
         for term in new_unique_terms:
-        	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1])
+        	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=0)
 
         for metric in metrics:
-        	curBucket.metric(metric, 'sum', field=metric)
+        	curBucket.metric(metric, 'sum', field=metric, size=0)
             
         response = s.execute()
             
