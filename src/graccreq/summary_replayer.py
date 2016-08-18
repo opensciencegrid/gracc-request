@@ -76,7 +76,7 @@ class SummaryReplayer(replayer.Replayer):
         	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=0)
 
         for metric in metrics:
-        	curBucket.metric(metric, 'sum', field=metric, size=0)
+        	curBucket.metric(metric, 'sum', field=metric)
             
         response = s.execute()
             
