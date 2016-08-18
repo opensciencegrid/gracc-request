@@ -65,8 +65,8 @@ class SummaryReplayer(replayer.Replayer):
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
         
         # Fill in the unique terms and metrics
-        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["Processors", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"]]
-        metrics = ["WallDuration", "CpuDuration_user", "CpuDuration_system"]
+        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"]]
+        metrics = ["WallDuration", "CpuDuration_user", "CpuDuration_system", "CoreHours"]
 
         # If the terms are missing, set as "N/A"
         curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
