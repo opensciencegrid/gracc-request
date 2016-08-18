@@ -55,8 +55,7 @@ popd
 # Do not die on failure.
 pushd gracc-request/tests/unittests
 set +e
-#python -m unittest discover tests/unittests "test_*.py"
-python -m unittest -v test_client.TestClient.test_summary
+python -m unittest discover tests/unittests "test_*.py"
 test_exit=$?
 set -e
 popd
