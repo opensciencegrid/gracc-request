@@ -65,7 +65,7 @@ class SummaryReplayer(replayer.Replayer):
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
         
         # Fill in the unique terms and metrics
-        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"]]
+        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"]]
         metrics = ["WallDuration", "CpuDuration_user", "CpuDuration_system", "CoreHours"]
 
         # If the terms are missing, set as "N/A"
