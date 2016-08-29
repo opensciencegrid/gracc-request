@@ -7,20 +7,20 @@ from elasticsearch_dsl import Search
 import traceback
 import replayer
 
-def RawReplayerFactory(msg, parameters):
+def RawReplayerFactory(msg, parameters, config):
     # Create the raw replayer class
     #print "Creating raw replayer"
     try:
-        replayer = RawReplayer(msg, parameters)
+        replayer = RawReplayer(msg, parameters, config)
         replayer.run()
     except Exception, e:
         logging.error(traceback.format_exc())
 
 
 class RawReplayer(replayer.Replayer):
-    def __init__(self, message, parameters):
+    def __init__(self, message, parameters, config):
         super(RawReplayer, self).__init__(message, parameters)
-
+        self._config = config
         
     def run(self):
         logging.debug("Beggining run of RawReplayer")
@@ -53,7 +53,7 @@ class RawReplayer(replayer.Replayer):
         client = Elasticsearch()
         
         logging.debug("Beginning search")
-        s = Search(using=client, index='gracc.osg.raw0-*')
+        s = Search(using=client, index=self._config['ElasticSearch']['raw_index'])
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
         
         logging.debug("About to execute query:\n%s" % str(s.to_dict()))
