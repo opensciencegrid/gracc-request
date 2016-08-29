@@ -9,9 +9,8 @@ username = "guest"
 password = "guest"
 
 
-
-# Configuration for the 
-[AMQP.osg]
-
 exchange = 'gracc.osg.requests'
 queue = 'gracc.osg.requests'
+
+[ElasticSearch]
+raw_index = 'gracc.osg.raw0-*'

@@ -58,9 +58,9 @@ class OverMind:
         self._chan = self._conn.channel()
         # Create the exchange, if it doesn't already exist
         # TODO: capture exit codes on all these call
-        self._chan.exchange_declare(exchange='gracc.osg.requests', exchange_type='direct')
-        self._chan.queue_declare(queue='gracc.osg.requests')
-        self._chan.queue_bind('gracc.osg.requests', 'gracc.osg.requests')
+        self._chan.exchange_declare(exchange=self._config["AMQP"]['exchange'], exchange_type='direct')
+        self._chan.queue_declare(queue=self._config["AMQP"]['queue'])
+        self._chan.queue_bind(self._config["AMQP"]['queue'], self._config["AMQP"]['exchange'])
         #self._chan.queue_declare(queue="request_raw", durable=True, auto_delete=False, exclusive=False)
         
         
@@ -82,11 +82,11 @@ class OverMind:
         # TODO: some sort of whitelist, authentication?
         if msg_body['kind'] == 'raw':
             logging.debug("Received raw message, dispatching")
-            self._pool.apply_async(RawReplayerFactory, (msg_body, self.parameters))
+            self._pool.apply_async(RawReplayerFactory, (msg_body, self.parameters, self._config))
             
         elif msg_body['kind'] == 'summary':
             logging.debug("Received summary message, dispatching")
-            self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters))
+            self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters, self._config))
             pass
         
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)

@@ -11,20 +11,20 @@ import copy
 import datetime
 
 
-def SummaryReplayerFactory(msg, parameters):
+def SummaryReplayerFactory(msg, parameters, config):
     # Create the raw replayer class
     #print "Creating raw replayer"
     try:
-        replayer = SummaryReplayer(msg, parameters)
+        replayer = SummaryReplayer(msg, parameters, config)
         replayer.run()
     except Exception, e:
         logging.error(traceback.format_exc())
         
         
 class SummaryReplayer(replayer.Replayer):
-    def __init__(self, message, parameters):
+    def __init__(self, message, parameters, config):
         super(SummaryReplayer, self).__init__(message, parameters)
-
+        self._config = config
         
     def run(self):
         logging.debug("Beggining run of SummaryReplayer")
@@ -64,7 +64,7 @@ class SummaryReplayer(replayer.Replayer):
         to_date = dateutil.parser.parse(to_date).date() + datetime.timedelta(days=1)
         
         logging.debug("Beginning search")
-        s = Search(using=client, index='gracc.osg.raw0-*')
+        s = Search(using=client, index=self._config['ElasticSearch']['raw_index'])
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
         
         # Fill in the unique terms and metrics
