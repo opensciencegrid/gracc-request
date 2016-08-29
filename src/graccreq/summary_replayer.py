@@ -8,6 +8,8 @@ import traceback
 import replayer
 import dateutil
 import copy
+import datetime
+
 
 def SummaryReplayerFactory(msg, parameters):
     # Create the raw replayer class
@@ -57,8 +59,9 @@ class SummaryReplayer(replayer.Replayer):
         client = Elasticsearch(timeout=300)
         
         # For summaries, we only summarize full days, so strip the time from the from & to
+        # Round the date up, so we get the entire last day they requested.
         from_date = dateutil.parser.parse(from_date).date()
-        to_date = dateutil.parser.parse(to_date).date()
+        to_date = dateutil.parser.parse(to_date).date() + datetime.timedelta(days=1)
         
         logging.debug("Beginning search")
         s = Search(using=client, index='gracc.osg.raw0-*')
