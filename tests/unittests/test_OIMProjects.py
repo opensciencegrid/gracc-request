@@ -11,7 +11,10 @@ class TestOIMProjects(unittest.TestCase):
         
         stuff = project.parseDoc({'ProjectName': 'atlas-org-unm'})
         
-        print stuff
+        self.assertEqual(stuff["PIName"], "Robert William Gardner Jr")
+        self.assertEqual(stuff["Organization"], "University of New Mexico")
+        self.assertEqual(stuff["Department"], "Physics")
+        self.assertEqual(stuff["FieldOfScience"], 'High Energy Physics')
         
         return True
         
