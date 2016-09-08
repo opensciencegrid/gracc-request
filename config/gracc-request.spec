@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        1.7
+Version:        2.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -71,6 +71,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Wed Sep 08 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.0-1
+- Add Project information from OIM to summary records
+
 * Mon Aug 29 2016 Derek Weitzel <dweitzel@cse.unl.edu> 1.7-1
 - Round up the day for summary records, so it can retrieve all of the last day requested.
 - Use configuartion options rather than hard code exchanges and queues

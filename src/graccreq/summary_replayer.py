@@ -9,6 +9,7 @@ import replayer
 import dateutil
 import copy
 import datetime
+from graccreq.oim import projects
 
 
 def SummaryReplayerFactory(msg, parameters, config):
@@ -26,6 +27,10 @@ class SummaryReplayer(replayer.Replayer):
         super(SummaryReplayer, self).__init__(message, parameters)
         self._config = config
         
+        # Initialize the project information
+        self.project = projects.OIMProjects()
+        
+        
     def run(self):
         logging.debug("Beggining run of SummaryReplayer")
         self.createConnection()
@@ -39,6 +44,7 @@ class SummaryReplayer(replayer.Replayer):
         try:
             for day in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
                 for record in day:
+                    self.addProperties(record)
                     self.sendMessage(json.dumps(record))
         except Exception, e:
             logging.error("Exception caught in query ES: %s" % str(e))
@@ -53,6 +59,13 @@ class SummaryReplayer(replayer.Replayer):
 
     def on_return(self, channel, method, properties, body):
         sys.stderr.write("Got returned message\n")
+        
+    def addProperties(self, record):
+
+        returned_doc = self.project.parseDoc(record)
+        record.update(returned_doc)
+        return record
+        
         
     def _queryElasticsearch(self, from_date, to_date, query):
         logging.debug("Connecting to ES")
