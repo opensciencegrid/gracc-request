@@ -60,7 +60,7 @@ class SummaryReplayer(replayer.Replayer):
     def on_return(self, channel, method, properties, body):
         sys.stderr.write("Got returned message\n")
         
-    def addProperties(record):
+    def addProperties(self, record):
 
         returned_doc = self.project.parseDoc(record)
         record.update(returned_doc)
