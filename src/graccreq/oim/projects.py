@@ -46,5 +46,10 @@ class OIMProjects(object):
         :return dict: A new dictionary that has attributes that should be appended to the doc
         """
         # Well this is easy!
-        return self.dict_name[doc['ProjectName']]
+        if doc['ProjectName'] in self.dict_name:
+            return self.dict_name[doc['ProjectName']]
+        else:
+            return {}
+        
+        
 
