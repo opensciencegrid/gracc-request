@@ -4,11 +4,13 @@ from ast import literal_eval
 
 class Facility(object):
     """Facility class to hold information about facilities"""
+    instances = []
     def __init__(self, name):
         self.name = name
         self.id = 0
         self.sites = {}
         self.facility = {}
+        Facility.instances.append(self)
 
     def parse(self, parent_elt):
         """Grabs the facility ID from the XML element passed in from outside the class"""
@@ -27,12 +29,14 @@ class Facility(object):
 
 class Site(object):
     """Site class to hold information at the site level"""
+    instances = []
     def __init__(self, name):
         self.name = name
         self.id = 0
         self.resourcegroups = {}
         self.supportcenter = {}
         self.site = {}
+        Site.instances.append(self)
 
     def parse(self, parent_elt):
         """Gets the site ID, Support Center information from the XML element passed in"""
@@ -64,11 +68,13 @@ class Site(object):
 
 class ResourceGroup(object):
     """Class to hold the Resource Group-level information"""
+    instances = []
     def __init__(self, name):
         self.name = name
         self.id = 0
         self.resources = {}
         self.rg = {}
+        ResourceGroup.instances.append(self)
 
     def parse(self, parent_elt):
         """Grabs the Resource Group ID from the XML element passed in"""
@@ -86,11 +92,13 @@ class ResourceGroup(object):
 
 class Resource(object):
     """Class to hold the resource-level information"""
+    instances = []
     def __init__(self, name):
         self.name = name
         self.id = 0
         self.fqdn = ''
         self.resource = {}
+        Resource.instances.append(self)
 
     def parse(self, parent_elt):
         """Grabs the Resource ID, FQDN, VO Ownership information, WLCG information, and Contacts from the XML element
@@ -98,7 +106,7 @@ class Resource(object):
         self.id = parent_elt.getElementsByTagName('ID')[0].firstChild.data
         self.fqdn = parent_elt.getElementsByTagName('FQDN')[0].firstChild.data
         self.resource['VOOwnership'] = self.get_vo_ownership_dict(parent_elt)
-        self.resource['WLCG'] = self.get_wlcg_info(parent_elt)
+        self.resource['WLCGInformation'] = self.get_wlcg_info(parent_elt)
         self.resource['Contacts'] = self.get_contact_info(parent_elt)
         return
 
@@ -157,7 +165,7 @@ class Resource(object):
         self.resource['ID'] = int(self.id)
         self.resource['FQDN'] = str(self.fqdn)
         self.resource['VOOwnership'] = self.vo_ownership
-        self.resource['WLCG'] = self.wlcg
+        self.resource['WLCGInformation'] = self.wlcg
         self.resource['Contacts'] = self.contacts
         return self.resource
 
@@ -199,6 +207,7 @@ class OIMTopology(object):
                 site.parse(rgelt)
                 sites[sitename] = site.build_dict()
 
+
             site = sites[sitename]
             resourcegroups = site['ResourceGroups']     # facilities[facilityname]['Sites'][sitename]['ResourceGroups']
 
@@ -210,11 +219,12 @@ class OIMTopology(object):
                 rg.parse(rgelt)
                 resourcegroups[groupname] = rg.build_dict()
 
-            rg = resourcegroups[groupname]    # facilities[facilityname]['Sites'][sitename]['ResourceGroups'][groupname]
+            rg = resourcegroups[groupname]
+            resources = rg['Resources']     # facilities[facilityname]['Sites'][sitename]['ResourceGroups'][groupname]
+                                            # ['Resources']
             resourceelts = rgelt.getElementsByTagName('Resources')[0].getElementsByTagName('Resource')
 
             # Populate the resources dictionary to put into the rg dictionary
-            resources = {}
             # For each resource
             for relt in resourceelts:
                 # Don't care about disabled resources
@@ -227,6 +237,7 @@ class OIMTopology(object):
 
                 for service in services:
                     if service.getElementsByTagName('Name')[0].firstChild.data in ['CE', 'Connect']:
+
                         resourcename = relt.getElementsByTagName('Name')[0].firstChild.data
 
                         # This should never happen, but just a check in case there's a duplicated resource in the
@@ -240,8 +251,6 @@ class OIMTopology(object):
                         resources[resourcename] = resource.build_dict()
                         break
 
-            # Add the resources dictionary to the resourcegroups dictionary
-            rg['Resources'] = resources
         return
 
     def test(self):
@@ -258,26 +267,61 @@ class OIMTopology(object):
                     for key, resource in resourcegroup['Resources'].iteritems():
                         print '\t\t\tResource Name: {}'.format(resource['Name'])
                         print '\t\t\t\tID: {}'.format(resource['ID'])
-                        print '\t\t\t\tWLCG: {}'.format(resource['WLCG'])
+                        print '\t\t\t\tWLCG: {}'.format(resource['WLCGInformation'])
                         print '\t\t\t\tContacts: {}'.format(resource['Contacts'])
                         print '\t\t\t\tVOOwnership: {}'.format(resource['VOOwnership'])
 
-    def get_information_by_facility(self, facility):
-        # name, id, sites
-        for key, items in self.facilities[facility].iteritems():
-            print key, items
-        return
+    def __str__(self):
+        """A function to test the generation of the facilities dictionary.  Run only after self.parse()"""
+        retstring = ''
+        for key, facility in self.facilities.iteritems():
+            retstring += "Facility: {}\n".format(facility['Name'])
 
-    def get_information_by_site(self, *args):
+            for key, site in facility['Sites'].iteritems():
+                retstring += "\tSite: {}\n".format(site['Name'])
+
+                for key, resourcegroup in site['ResourceGroups'].iteritems():
+                    retstring += '\t\tResource Group: {}\n'.format(resourcegroup['Name'])
+
+                    for key, resource in resourcegroup['Resources'].iteritems():
+                        retstring += '\t\t\tResource Name: {}\n'.format(resource['Name'])
+                        retstring += '\t\t\t\tID: {}\n'.format(resource['ID'])
+                        retstring += '\t\t\t\tWLCG: {}\n'.format(resource['WLCGInformation'])
+                        retstring += '\t\t\t\tContacts: {}\n'.format(resource['Contacts'])
+                        retstring += '\t\t\t\tVOOwnership: {}\n'.format(resource['VOOwnership'])
+        return retstring
+
+
+    def get_information_by_resource(self,resourcename):
         """Person should be able to put in the desired attributes, get information"""
+        returndict = {}
 
-        pass
+        for instance in Resource.instances:
+            if resourcename == instance.name:
+                resource = instance
+                break
+        else:
+            print "There is no resource called {0}".format(resourcename)
+            return
+
+        returndict = resource.resource.copy()
+
+        classlist = [('ResourceGroup','resources'), ('Site','resourcegroups'), ('Facility','sites')]
+
+        testitem = resourcename
+        for clitem in classlist:
+            for instance in eval(clitem[0]).instances:
+                searchspace = getattr(instance, clitem[1])
+                if testitem in searchspace:
+                    testitem = instance.name
+                    returndict[clitem[0]] = str(testitem)
+                    break
+
+        return returndict
 
     def get_information_by_resourcegroup(self, *args):
         pass
 
-    def get_information_by_resource(self, *args):
-        pass
 
     def get_vo_ownership_by_resource(self):
         pass
@@ -289,8 +333,9 @@ def main():
     topology = OIMTopology(infile)
     topology.parse()
     # print topology.facilities
-    topology.test()
-    topology.get_information_by_facility('JINR')
+    print topology
+    print topology.get_information_by_resource('AGLT2_SL6')
+
 
 if __name__ == '__main__':
     main()
