@@ -1,14 +1,12 @@
 import xml.etree.ElementTree as ET
 from datetime import timedelta, date
-import requests
+import urllib2
 from os.path import exists
-
-#To DO:
-# Change requests to urllib2 if possible
 
 
 cachefile = '/var/tmp/resource_group.xml'
 #cachefile = '/private/etc/resource_group.xml'
+
 
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
@@ -46,24 +44,25 @@ class OIMTopology(object):
             .format(*dateslist)  # Take into account to generate URL
 
         try:
-            oim_xml = requests.get(OIM_url)
-#            oim_xml = requests.get('http://blahblabhalbh')
+            oim_xml = urllib2.urlopen(OIM_url)
             try:
                 self.cache_file(oim_xml)
                 print "Got new file and cached it"
             except:
                 print "Couldn't cache file"
                 self.xml_file = False
-        except requests.ConnectionError as e:
+        except (urllib2.HTTPError, urllib2.URLError) as e:
             print e
             print "Couldn't download file.  Will try running this " \
-                  "from cached file at {}".format(cachefile)
+                  "from cached file" \
+                  " at {}".format(cachefile)
+            self.set_xml_to_cache()
 
         return
 
     def cache_file(self, file):
         with open(cachefile, 'w') as f:
-            f.write(file.content)
+            f.write(file.read())
         self.xml_file = cachefile
         return
 
@@ -89,8 +88,8 @@ class OIMTopology(object):
 
     def get_information_by_resource(self, resourcename):
         """Does the same as the get_information_by_resource but doesn't use the
-        topology classes at all.  Returns the dict of information we need from the OIM
-        topology file"""
+        topology classes at all.  Returns the dict of information we need from
+        the OIM topology file"""
 
         returndict = {}
         if not self.xml_file:
@@ -101,7 +100,8 @@ class OIMTopology(object):
 
         # All information that will be simple key:value pairs in our dictionary
         returndict['Facility'] = \
-            self.root.find('{0}../../Facility/Name'.format(self.resourcepath)).text
+            self.root.find('{0}../../Facility/Name'.format(self.resourcepath))\
+                .text
         returndict['Site'] = \
             self.root.find('{0}../../Site/Name'.format(self.resourcepath)).text
         returndict['ResourceGroup'] = \
@@ -113,18 +113,21 @@ class OIMTopology(object):
         returndict['FQDN'] = \
             self.root.find('{0}/FQDN'.format(self.resourcepath)).text
         returndict['WLCGAccountingName'] = \
-            self.root.find('{0}/WLCGInformation/AccountingName'.format(self.resourcepath)).text
+            self.root.find('{0}/WLCGInformation/AccountingName'.format(
+                self.resourcepath)).text
 
         # All information that requires a bit more scrubbing
-        returndict['VOOwnership'] = self.get_VO_Ownership()        # VO Ownership
-        returndict['Contacts'] = self.get_Contact_Info()           # Contact Information
+        returndict['VOOwnership'] = self.get_VO_Ownership()     # VO Ownership
+        returndict['Contacts'] = self.get_Contact_Info()  # Contact Information
 
         return returndict
 
     def get_VO_Ownership(self):
         ownershipdict = {}
-        for elt in self.root.find('{0}/VOOwnership'.format(self.resourcepath)).findall('Ownership'):
-            ownershipdict[elt.find('VO').text] = float(elt.find('Percent').text)
+        for elt in self.root.find('{0}/VOOwnership'.format(self.resourcepath))\
+                .findall('Ownership'):
+            ownershipdict[elt.find('VO').text] = float(elt.find('Percent')
+                                                       .text)
         return ownershipdict
 
     def get_Contact_Info(self):
@@ -139,11 +142,32 @@ class OIMTopology(object):
             name['ContactRank'] = str(elt.find('ContactRank').text)
         return contactsdict
 
+    def generate_dict_for_gracc(self, doc):
+        resourcename = doc['SiteName']
+        voname = doc['VOName']
+        rawdict = self.get_information_by_resource(resourcename)
+        returndict = rawdict.copy()
+
+        # Parse VOOwnership to determine opportunistic vs. dedicated
+        if voname.lower() in [elt.lower()
+                              for elt in rawdict['VOOwnership'].keys()]:
+            returndict['UsageModel'] = 'DEDICATED'
+        else:
+            returndict['UsageModel'] = 'OPPORTUNISTIC'
+
+        # Delete unnecessary keys
+        del returndict['Contacts']
+        del returndict['VOOwnership']
+
+        return returndict
+
 def main():
     topology = OIMTopology(newfile=True)
-    print topology.get_information_by_resource('AGLT2_SL6')
-    topology2 = OIMTopology(newfile=False)
-    print topology2.get_information_by_resource('AGLT2_SL6')
+#    print topology.get_information_by_resource('AGLT2_SL6')
+#    topology2 = OIMTopology(newfile=False)
+#    print topology2.get_information_by_resource('AGLT2_SL6')
+    doc = {'SiteName':'AGLT2_SL6', 'VOName': 'Fermilab'}
+    print topology.generate_dict_for_gracc(doc)
 
 
 if __name__ == '__main__':
