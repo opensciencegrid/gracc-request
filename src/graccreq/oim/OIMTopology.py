@@ -2,15 +2,38 @@ import xml.etree.ElementTree as ET
 from datetime import timedelta, date
 import urllib2
 from os.path import exists
+import re
 
 
 cachefile = '/var/tmp/resource_group.xml'
-#cachefile = '/private/etc/resource_group.xml'
+# cachefile = '/private/etc/resource_group.xml'
+
+testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
+           'ProbeName': 'condor:gate02.grid.umich.edu'}  # Should be opportunistic
+# testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+#           'ProbeName':'condor:gate02.grid.umich.edu'}  # Should be dedicated
+
+
+# This could (and probably should) be moved to a config file
+pathdictionary = {
+    'Facility': '../../Facility/Name',
+    'Site': '../../Site/Name',
+    'ResourceGroup': '../../GroupName',
+    'Resource': '/Name',
+    'ID': '/ID',
+    'FQDN': '/FQDN',
+    'WLCGAccountingName': '/WLCGInformation/AccountingName'
+}
 
 
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
     def __init__(self, newfile=True):
+        self.xml_file = None
+        self.e = None
+        self.root = None
+        self.resourcepath = None
+
         if newfile:
             self.get_file_from_OIM()
             self.parse()
@@ -20,6 +43,7 @@ class OIMTopology(object):
             self.parse()
 
     def get_file_from_OIM(self):
+        """Gets a new file from OIM.  Passes in today's date"""
         today = date.today()
         startdate = today - timedelta(days=7)
         rawdateslist = [startdate.month, startdate.day, startdate.year,
@@ -27,7 +51,7 @@ class OIMTopology(object):
         dateslist = ['0' + str(elt) if len(str(elt)) == 1 else str(elt)
                      for elt in rawdateslist]
 
-        OIM_url = 'http://myosg.grid.iu.edu/rgsummary/xml?' \
+        oim_url = 'http://myosg.grid.iu.edu/rgsummary/xml?' \
                   'summary_attrs_showhierarchy=on&summary_attrs_showwlcg=on' \
                   '&summary_attrs_showservice=on&summary_attrs_showfqdn=on' \
                   '&summary_attrs_showvoownership=on' \
@@ -41,16 +65,16 @@ class OIMTopology(object):
                   '&end_date={3}%2F{4}%2F{5}&all_resources=on' \
                   '&facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on' \
                   '&active=on&active_value=1&disable_value=1' \
-            .format(*dateslist)  # Take into account to generate URL
+            .format(*dateslist)  # Take date into account to generate URL
 
         try:
-            oim_xml = urllib2.urlopen(OIM_url)
+            oim_xml_url = urllib2.urlopen(oim_url)
             try:
-                self.cache_file(oim_xml)
+                self.cache_file(oim_xml_url)
                 print "Got new file and cached it"
-            except:
+            except Exception:
                 print "Couldn't cache file"
-                self.xml_file = False
+                self.xml_file = None
         except (urllib2.HTTPError, urllib2.URLError) as e:
             print e
             print "Couldn't download file.  Will try running this " \
@@ -60,21 +84,30 @@ class OIMTopology(object):
 
         return
 
-    def cache_file(self, file):
+    def cache_file(self, url):
+        """Writes opened urllib2.urlopen object to cache file path specified in
+        global variable cachefile
+
+        Arguments:
+            url (urllib2.urlopen object) - URL to read from
+        """
         with open(cachefile, 'w') as f:
-            f.write(file.read())
+            f.write(url.read())
         self.xml_file = cachefile
         return
 
     def set_xml_to_cache(self):
+        """Set self.xml_file variable to the cache file path, if it exists"""
         if exists(cachefile):
             self.xml_file = cachefile
         else:
             print "There is no cache file"
-            self.xml_file = False
+            self.xml_file = None
         return
 
     def parse(self):
+        """Parses XML file using ElementTree.parse().  Also sets XML root for
+        further processing"""
         if self.xml_file:
             try:
                 self.e = ET.parse(self.xml_file)
@@ -83,46 +116,84 @@ class OIMTopology(object):
             except Exception as e:
                 print e
                 print "Couldn't parse OIM file"
-                self.xml_file = False
+                self.xml_file = None
         return
 
     def get_information_by_resource(self, resourcename):
-        """Does the same as the get_information_by_resource but doesn't use the
-        topology classes at all.  Returns the dict of information we need from
-        the OIM topology file"""
+        """Gets the relevant information from the parsed OIM XML file based on
+        the Resource Name.  Meant to be called after OIMTopology.parse().
 
-        returndict = {}
+        Arguments:
+            resourcename (string) - Resource Name
+
+        Returns: Dictionary that has relevant OIM information
+        """
         if not self.xml_file:
-            return returndict
+            return {}
+
         # So we don't have to type this over and over again
         self.resourcepath = './ResourceGroup/Resources/Resource/[Name="{0}"]'\
             .format(resourcename)
+        if self.root.find('{0}'.format(self.resourcepath)) is None:
+            print "No Resource with that Name"
+            return {}
 
-        # All information that will be simple key:value pairs in our dictionary
-        returndict['Facility'] = \
-            self.root.find('{0}../../Facility/Name'.format(self.resourcepath))\
-                .text
-        returndict['Site'] = \
-            self.root.find('{0}../../Site/Name'.format(self.resourcepath)).text
-        returndict['ResourceGroup'] = \
-            self.root.find('{0}../../GroupName'.format(self.resourcepath)).text
-        returndict['Resource'] = \
-            self.root.find('{0}/Name'.format(self.resourcepath)).text
-        returndict['ID'] = \
-            self.root.find('{0}/ID'.format(self.resourcepath)).text
-        returndict['FQDN'] = \
-            self.root.find('{0}/FQDN'.format(self.resourcepath)).text
-        returndict['WLCGAccountingName'] = \
-            self.root.find('{0}/WLCGInformation/AccountingName'.format(
-                self.resourcepath)).text
+        return self.get_resource_information()
 
-        # All information that requires a bit more scrubbing
-        returndict['VOOwnership'] = self.get_VO_Ownership()     # VO Ownership
-        returndict['Contacts'] = self.get_Contact_Info()  # Contact Information
+    def get_information_by_fqdn(self, fqdn):
+        """Gets the relevant information from the parsed OIM XML file based on
+        the FQDN.  Meant to be called after OIMTopology.parse().
+
+        Arguments:
+            fqdn (string) - FQDN of the resource
+
+        Returns: Dictionary that has relevant OIM information"""
+        if not self.xml_file:
+            return {}
+
+        # So we don't have to type this over and over again
+        self.resourcepath = './ResourceGroup/Resources/Resource/[FQDN="{0}"]'\
+            .format(fqdn)
+        if self.root.find('{0}'.format(self.resourcepath)) is None:
+            self.resourcepath = './ResourceGroup/Resources/Resource/'\
+                '[FQDNAliases="{0}"]'.format(fqdn)
+        if self.root.find('{0}'.format(self.resourcepath)) is None:
+            print "No Resource with that FQDN"
+            return {}
+
+        return self.get_resource_information()
+
+    def get_resource_information(self):
+        """Uses parsed XML file and finds the relevant information based on the
+        dictionary of XPaths.  Searches by resource.
+
+        Global Variable:
+            pathdictionary (dict):  Dictionary of keys : XPaths to find
+                OIM information about those keys from parsed XML file
+
+        Returns dictionary that has relevant OIM information
+        """
+        returndict = {}
+        for key, path in pathdictionary.iteritems():
+            searchpath = '{0}{1}'.format(self.resourcepath, path)
+            try:
+                returndict[key] = self.root.find(searchpath).text
+            except AttributeError:
+                # Skip this.  It means there's no information for this key
+                pass
+
+            # All information that requires a bit more scrubbing
+            returndict['VOOwnership'] = self.get_VO_Ownership_by_resource()
+            returndict['Contacts'] = self.get_Contact_Info_by_resource()
 
         return returndict
 
-    def get_VO_Ownership(self):
+    def get_VO_Ownership_by_resource(self):
+        """Using resource name and XPath, finds VOOwnership information from
+        parsed XML file
+
+        Returns dictionary in VO: Percentage format
+        """
         ownershipdict = {}
         for elt in self.root.find('{0}/VOOwnership'.format(self.resourcepath))\
                 .findall('Ownership'):
@@ -130,22 +201,39 @@ class OIMTopology(object):
                                                        .text)
         return ownershipdict
 
-    def get_Contact_Info(self):
+    def get_Contact_Info_by_resource(self):
+        """Finds contact information of a resource by resource name and XPath
+        from parsed XML file.
+
+        Returns dictionary of contact information in format
+        Name:{Email: 'email_address', ContactRank:'contact_rank'}
+        """
         contactsdict = {}
         for elt in self.root.findall(
                 '{0}/ContactLists/ContactList/'
-                '[ContactType="Resource Report Contact"]/Contacts/Contact'\
-                        .format(self.resourcepath)):
+                '[ContactType="Resource Report Contact"]/Contacts/Contact'
+                .format(self.resourcepath)):
             contactsdict[elt.find('Name').text] = {}
             name = contactsdict[elt.find('Name').text]
             name['Email'] = None
             name['ContactRank'] = str(elt.find('ContactRank').text)
+
         return contactsdict
 
-    def generate_dict_for_gracc(self, doc):
-        resourcename = doc['SiteName']
+    def generate_dict_for_gracc_by_probename(self, doc):
+        """Generates a dictionary for appending to GRACC records.  Based on
+        the probe name, we return a dictionary with the relevant OIM
+        information, in the format that's ready to append to GRACC record
+
+        Arguments:
+            doc (dict): GRACC document (record)
+
+        Returns dictionary containing OIM information to append to GRACC record
+        """
+        probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
         voname = doc['VOName']
-        rawdict = self.get_information_by_resource(resourcename)
+
+        rawdict = self.get_information_by_fqdn(probe_fqdn)
         returndict = rawdict.copy()
 
         # Parse VOOwnership to determine opportunistic vs. dedicated
@@ -161,13 +249,15 @@ class OIMTopology(object):
 
         return returndict
 
+
 def main():
+    # Mainly for testing.  Note:  testdoc is a global variable at the top
     topology = OIMTopology(newfile=True)
-#    print topology.get_information_by_resource('AGLT2_SL6')
-#    topology2 = OIMTopology(newfile=False)
-#    print topology2.get_information_by_resource('AGLT2_SL6')
-    doc = {'SiteName':'AGLT2_SL6', 'VOName': 'Fermilab'}
-    print topology.generate_dict_for_gracc(doc)
+    print topology.get_information_by_fqdn('fifebatch1.fnal.gov')
+    print topology.get_information_by_resource('AGLT2_SL6')
+    topology2 = OIMTopology(newfile=False)
+    print topology2.get_information_by_fqdn('fifebatch2.fnal.gov')
+    print topology.generate_dict_for_gracc_by_probename(testdoc)
 
 
 if __name__ == '__main__':
