@@ -71,8 +71,10 @@ for key, item in testdict.iteritems():
                 else:
                     failures += 1
                     badsites.append(badsites)
+                    continue
     else:
         failures += 1
+        continue
 
     outstr = ','.join(outlist)
     outall += outstr + '\n'
