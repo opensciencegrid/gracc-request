@@ -158,7 +158,7 @@ class OIMTopology(object):
             self.resourcepath = './ResourceGroup/Resources/Resource/'\
                 '[FQDNAliases="{0}"]'.format(fqdn)
         if self.root.find('{0}'.format(self.resourcepath)) is None:
-            print "No Resource with that FQDN"
+            print "No Resource with that FQDN: {0}".format(fqdn)
             return {}
 
         return self.get_resource_information()
