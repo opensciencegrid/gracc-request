@@ -6,7 +6,6 @@ import re
 
 
 cachefile = '/var/tmp/resource_group.xml'
-# cachefile = '/private/etc/resource_group.xml'
 
 # This could (and probably should) be moved to a config file
 pathdictionary = {
