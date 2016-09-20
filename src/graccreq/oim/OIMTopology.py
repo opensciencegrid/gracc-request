@@ -229,8 +229,8 @@ class OIMTopology(object):
 
     def generate_dict_for_gracc(self, doc):
         """Generates a dictionary for appending to GRACC records.  Based on
-        the probe name, we return a dictionary with the relevant OIM
-        information, in the format that's ready to append to GRACC record
+        the probe name or site name, we return a dictionary with the relevant
+        OIM information, in the format that's ready to append to GRACC record
 
         Arguments:
             doc (dict): GRACC document (record)
