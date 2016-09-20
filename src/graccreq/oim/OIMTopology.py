@@ -8,10 +8,17 @@ import re
 cachefile = '/var/tmp/resource_group.xml'
 # cachefile = '/private/etc/resource_group.xml'
 
-testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
+testdoc_op = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
            'ProbeName': 'condor:gate02.grid.umich.edu'}  # Should be opportunistic
-# testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
-#           'ProbeName':'condor:gate02.grid.umich.edu'}  # Should be dedicated
+testdoc_ded= {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+           'ProbeName':'condor:gate02.grid.umich.edu'}  # Should be dedicated
+
+testdoc_fail_probe = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
+           'ProbeName': 'condor:gate02.grid.umich.edu1231231'}  # Should return {}
+
+
+testdoc_fail = {'SiteName': 'AGLT2_SL6123123123', 'VOName': 'Fermilab',
+           'ProbeName': 'condor:gate02.grid.umich.edu1231231'}  # Should return {}
 
 
 # This could (and probably should) be moved to a config file
@@ -220,7 +227,7 @@ class OIMTopology(object):
 
         return contactsdict
 
-    def generate_dict_for_gracc_by_probename(self, doc):
+    def generate_dict_for_gracc(self, doc):
         """Generates a dictionary for appending to GRACC records.  Based on
         the probe name, we return a dictionary with the relevant OIM
         information, in the format that's ready to append to GRACC record
@@ -232,8 +239,17 @@ class OIMTopology(object):
         """
         probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
         voname = doc['VOName']
+        rawsite = doc['SiteName']
 
         rawdict = self.get_information_by_fqdn(probe_fqdn)
+        # If match by fqdn doesn't work, the other mode we should try is
+        # matching OIM resource group to gracc record SiteName.  I've noticed
+        # this to be the case a number of times
+        if not rawdict:
+            print "Trying match by SiteName to Resource"
+            rawdict = self.get_information_by_resource(rawsite)
+        if not rawdict:
+            return {}   # If it still doesn't work, return a blank dictionary
         returndict = rawdict.copy()
 
         # Parse VOOwnership to determine opportunistic vs. dedicated
@@ -250,6 +266,7 @@ class OIMTopology(object):
         return returndict
 
 
+
 def main():
     # Mainly for testing.  Note:  testdoc is a global variable at the top
     topology = OIMTopology(newfile=True)
@@ -257,7 +274,12 @@ def main():
     print topology.get_information_by_resource('AGLT2_SL6')
     topology2 = OIMTopology(newfile=False)
     print topology2.get_information_by_fqdn('fifebatch2.fnal.gov')
-    print topology.generate_dict_for_gracc_by_probename(testdoc)
+
+    # GRACC functions
+    print topology.generate_dict_for_gracc(testdoc_ded)
+    print topology.generate_dict_for_gracc(testdoc_op)
+    print topology.generate_dict_for_gracc(testdoc_fail_probe)
+    print topology.generate_dict_for_gracc(testdoc_fail)
 
 
 if __name__ == '__main__':
