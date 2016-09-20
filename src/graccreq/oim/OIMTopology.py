@@ -8,19 +8,6 @@ import re
 cachefile = '/var/tmp/resource_group.xml'
 # cachefile = '/private/etc/resource_group.xml'
 
-testdoc_op = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
-           'ProbeName': 'condor:gate02.grid.umich.edu'}  # Should be opportunistic
-testdoc_ded= {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
-           'ProbeName':'condor:gate02.grid.umich.edu'}  # Should be dedicated
-
-testdoc_fail_probe = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
-           'ProbeName': 'condor:gate02.grid.umich.edu1231231'}  # Should return {}
-
-
-testdoc_fail = {'SiteName': 'AGLT2_SL6123123123', 'VOName': 'Fermilab',
-           'ProbeName': 'condor:gate02.grid.umich.edu1231231'}  # Should return {}
-
-
 # This could (and probably should) be moved to a config file
 pathdictionary = {
     'Facility': '../../Facility/Name',
@@ -266,20 +253,13 @@ class OIMTopology(object):
         return returndict
 
 
-
 def main():
-    # Mainly for testing.  Note:  testdoc is a global variable at the top
-    topology = OIMTopology(newfile=True)
-    print topology.get_information_by_fqdn('fifebatch1.fnal.gov')
-    print topology.get_information_by_resource('AGLT2_SL6')
-    topology2 = OIMTopology(newfile=False)
-    print topology2.get_information_by_fqdn('fifebatch2.fnal.gov')
+    # Mainly for testing.
+    testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+                   'ProbeName': 'condor:gate02.grid.umich.edu'}
 
-    # GRACC functions
-    print topology.generate_dict_for_gracc(testdoc_ded)
-    print topology.generate_dict_for_gracc(testdoc_op)
-    print topology.generate_dict_for_gracc(testdoc_fail_probe)
-    print topology.generate_dict_for_gracc(testdoc_fail)
+    topology = OIMTopology(newfile=True)
+    print topology.generate_dict_for_gracc(testdoc)
 
 
 if __name__ == '__main__':
