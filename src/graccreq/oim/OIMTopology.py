@@ -185,6 +185,9 @@ class OIMTopology(object):
 
         Returns dictionary containing OIM information to append to GRACC record
         """
+        if not self.xml_file:
+            return {}
+
         probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
         voname = doc['VOName']
         rawsite = doc['SiteName']
@@ -194,7 +197,7 @@ class OIMTopology(object):
         # matching OIM resource group to gracc record SiteName.  I've noticed
         # this to be the case a number of times
         if not rawdict:
-            print "Either no XML file or probename doesn't match FQDN.  " \
+            print "Probename doesn't match FQDN.  " \
                   "Trying match by SiteName to Resource"
             rawdict = self.get_information_by_resource(rawsite)
         if not rawdict:
