@@ -21,18 +21,13 @@ pathdictionary = {
 
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
-    def __init__(self, newfile=True):
-        self.xml_file = None
+    def __init__(self):
         self.e = None
         self.root = None
         self.resourcepath = None
 
-        if newfile:
-            self.get_file_from_OIM()
-            self.parse()
-        else:
-            print "Not attempting to get new file.  Will run from cached file"
-            self.set_xml_to_cache()
+        self.xml_file = self.get_file_from_OIM()
+        if self.xml_file:
             self.parse()
 
     def get_file_from_OIM(self):
@@ -61,42 +56,12 @@ class OIMTopology(object):
             .format(*dateslist)  # Take date into account to generate URL
 
         try:
-            oim_xml_url = urllib2.urlopen(oim_url)
-            try:
-                self.cache_file(oim_xml_url)
-                print "Got new file and cached it"
-            except Exception:
-                print "Couldn't cache file"
-                self.xml_file = None
+            oim_xml = urllib2.urlopen(oim_url)
         except (urllib2.HTTPError, urllib2.URLError) as e:
             print e
-            print "Couldn't download file.  Will try running this " \
-                  "from cached file" \
-                  " at {}".format(cachefile)
-            self.set_xml_to_cache()
+            return None
 
-        return
-
-    def cache_file(self, url):
-        """Writes opened urllib2.urlopen object to cache file path specified in
-        global variable cachefile
-
-        Arguments:
-            url (urllib2.urlopen object) - URL to read from
-        """
-        with open(cachefile, 'w') as f:
-            f.write(url.read())
-        self.xml_file = cachefile
-        return
-
-    def set_xml_to_cache(self):
-        """Set self.xml_file variable to the cache file path, if it exists"""
-        if exists(cachefile):
-            self.xml_file = cachefile
-        else:
-            print "There is no cache file"
-            self.xml_file = None
-        return
+        return oim_xml
 
     def parse(self):
         """Parses XML file using ElementTree.parse().  Also sets XML root for
@@ -232,7 +197,8 @@ class OIMTopology(object):
         # matching OIM resource group to gracc record SiteName.  I've noticed
         # this to be the case a number of times
         if not rawdict:
-            print "Trying match by SiteName to Resource"
+            print "Either no XML file or probename doesn't match FQDN.  " \
+                  "Trying match by SiteName to Resource"
             rawdict = self.get_information_by_resource(rawsite)
         if not rawdict:
             return {}   # If it still doesn't work, return a blank dictionary
@@ -257,7 +223,7 @@ def main():
     testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                    'ProbeName': 'condor:gate02.grid.umich.edu'}
 
-    topology = OIMTopology(newfile=True)
+    topology = OIMTopology()
     print topology.generate_dict_for_gracc(testdoc)
 
 
