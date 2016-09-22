@@ -8,7 +8,7 @@ from graccreq.oim import OIMTopology
 class BasicOIMTopologyTests(unittest.TestCase):
     def setUp(self):
         self.topology = OIMTopology.OIMTopology()
-        self.topology2 = OIMTopology.OIMTopology(newfile=False)
+        self.topology2 = OIMTopology.OIMTopology()
 
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
@@ -22,7 +22,7 @@ class BasicOIMTopologyTests(unittest.TestCase):
 
     def test_resource(self):
         """OIMTopology match by gracc SiteName to topology resource"""
-        testdict = self.topology2.get_information_by_resource('AGLT2_SL6')
+        testdict = self.topology.get_information_by_resource('AGLT2_SL6')
         self.assertEqual(testdict['Facility'], 'University of Michigan')
         self.assertEqual(testdict['Site'], 'AGLT2')
         self.assertEqual(testdict['ResourceGroup'], 'AGLT2')
@@ -47,6 +47,14 @@ class GRACCDictTests(BasicOIMTopologyTests):
                              'VOName': 'Fermilab',
                              'ProbeName':
                                  'condor:gate02.grid.umich.edu1231231'}
+
+    def test_blankdict(self):
+        """If URL retrieval fails or parsing didn't work, we should get a
+        blank dictionary"""
+        self.topology2.xml_file = None  # URL retrieval or parsing didn't work
+        test_dict = self.topology2.generate_dict_for_gracc(self.testdoc_ded)
+        self.assertFalse(test_dict)
+        return True
 
     def test_dedicated(self):
         """Matching by probename, so the incorrect SiteName should be
