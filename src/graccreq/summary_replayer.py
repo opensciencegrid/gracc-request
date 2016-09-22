@@ -65,8 +65,8 @@ class SummaryReplayer(replayer.Replayer):
     def addProperties(self, record):
 
         returned_doc = self.project.parseDoc(record)
-        record.update(returned_doc)
         topology_doc = self.topology.generate_dict_for_gracc(record)
+        record.update(returned_doc)
         record.update(topology_doc)
         return record
         
