@@ -64,15 +64,14 @@ class OIMTopology(object):
     def parse(self):
         """Parses XML file using ElementTree.parse().  Also sets XML root for
         further processing"""
-        if self.xml_file:
-            try:
-                self.e = ET.parse(self.xml_file)
-                self.root = self.e.getroot()
-                print "Parsed file"
-            except Exception as e:
-                print e
-                print "Couldn't parse OIM file"
-                self.xml_file = None
+        try:
+            self.e = ET.parse(self.xml_file)
+            self.root = self.e.getroot()
+            print "Parsed file"
+        except Exception as e:
+            print e
+            print "Couldn't parse OIM file"
+            self.xml_file = None
         return
 
     def get_information_by_resource(self, resourcename):
