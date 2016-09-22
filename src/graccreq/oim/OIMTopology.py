@@ -214,6 +214,7 @@ class OIMTopology(object):
         # Delete unnecessary keys
         del returndict['Contacts']
         del returndict['VOOwnership']
+        del returndict['ID']
 
         return returndict
 
