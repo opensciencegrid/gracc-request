@@ -9,7 +9,7 @@ import replayer
 import dateutil
 import copy
 import datetime
-from graccreq.oim import projects
+from graccreq.oim import projects, OIMTopology
 
 
 def SummaryReplayerFactory(msg, parameters, config):
@@ -29,7 +29,9 @@ class SummaryReplayer(replayer.Replayer):
         
         # Initialize the project information
         self.project = projects.OIMProjects()
-        
+
+        # Initialize the OIM Topology information
+        self.topology = OIMTopology.OIMTopology()
         
     def run(self):
         logging.debug("Beggining run of SummaryReplayer")
@@ -64,6 +66,8 @@ class SummaryReplayer(replayer.Replayer):
 
         returned_doc = self.project.parseDoc(record)
         record.update(returned_doc)
+        topology_doc = self.topology.generate_dict_for_gracc(record)
+        record.update(topology_doc)
         return record
         
         
