@@ -8,7 +8,6 @@ from graccreq.oim import OIMTopology
 class BasicOIMTopologyTests(unittest.TestCase):
     def setUp(self):
         self.topology = OIMTopology.OIMTopology()
-        self.topology2 = OIMTopology.OIMTopology()
 
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
@@ -47,6 +46,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
                              'VOName': 'Fermilab',
                              'ProbeName':
                                  'condor:gate02.grid.umich.edu1231231'}
+        self.topology2 = OIMTopology.OIMTopology()
 
     def test_blankdict(self):
         """If URL retrieval fails or parsing didn't work, we should get a
