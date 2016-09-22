@@ -188,7 +188,10 @@ class OIMTopology(object):
         if not self.xml_file:
             return {}
 
-        probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
+        if 'ProbeName' in doc:
+            probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
+        else:
+            probe_fqdn = ''
         voname = doc['VOName']
         rawsite = doc['SiteName']
 
