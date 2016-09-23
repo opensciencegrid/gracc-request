@@ -10,6 +10,7 @@ class OIMTopology(object):
         self.e = None
         self.root = None
         self.resourcedict = {}
+        self.probe_exp = re.compile('.+:(.+)')
 
         self.xml_file = self.get_file_from_OIM()
         if self.xml_file:
@@ -211,8 +212,7 @@ class OIMTopology(object):
          dictionary if a match was not found
         """
         if 'ProbeName' in doc:
-            probe_exp = re.compile('.+:(.+)')
-            probe_fqdn = probe_exp.match(doc['ProbeName']).group(1)
+            probe_fqdn = self.probe_exp.match(doc['ProbeName']).group(1)
             probeinfo = self.get_information_by_fqdn(probe_fqdn)
             if probeinfo:
                 # Probe matching was successful
