@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        2.0
+Version:        2.1
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -71,6 +71,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Fri Sep 23 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.1-1
+- Add OIM Topology information from OIM to summary records
+
 * Wed Sep 08 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.0-1
 - Add Project information from OIM to summary records
 
