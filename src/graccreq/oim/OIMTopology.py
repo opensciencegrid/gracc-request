@@ -4,18 +4,6 @@ import urllib2
 import re
 
 
-# This could (and probably should) be moved to a config file
-pathdictionary = {
-    'Facility': '../../Facility/Name',
-    'Site': '../../Site/Name',
-    'ResourceGroup': '../../GroupName',
-    'Resource': './Name',
-    'ID': './ID',
-    'FQDN': './FQDN',
-    'WLCGAccountingName': './WLCGInformation/AccountingName'
-}
-
-
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
     def __init__(self):
@@ -78,37 +66,66 @@ class OIMTopology(object):
                                                   'Resources/Resource/Name'):
             resourcename = resourcename_elt.text
             if resourcename not in self.resourcedict:
-                resourcepath = './ResourceGroup/Resources/' \
-                               'Resource/[Name="{0}"]'.format(resourcename)
+                resource_grouppath = './ResourceGroup/Resources/Resource/' \
+                                     '[Name="{0}"]/../..'.format(resourcename)
                 self.resourcedict[resourcename] = \
-                    self.get_resource_information(resourcepath)
+                    self.get_resource_information(resource_grouppath,
+                                                  resourcename)
 
         return
 
-    def get_resource_information(self, resourcepath):
+    def get_resource_information(self, resource_grouppath, resourcename):
         """Uses parsed XML file and finds the relevant information based on the
         dictionary of XPaths.  Searches by resource.
 
-        Global Variable:
-            pathdictionary (dict):  Dictionary of keys : Relative
-            XPaths to find OIM information from parsed XML file
+        Arguments:
+            resource_grouppath (string): XPath path to Resource Group
+            Element to be parsed
+            resourcename (string): Name of resource
 
         Returns dictionary that has relevant OIM information
         """
+
+        # This could (and probably should) be moved to a config file
+        rg_pathdictionary = {
+            'Facility': './Facility/Name',
+            'Site': './Site/Name',
+            'ResourceGroup': './GroupName'}
+
+        r_pathdictionary = {
+            'Resource': './Name',
+            'ID': './ID',
+            'FQDN': './FQDN',
+            'WLCGAccountingName': './WLCGInformation/AccountingName'
+        }
+
         returndict = {}
-        for key, path in pathdictionary.iteritems():
+
+        # Resource group-specific info
+        resource_group_elt = self.root.find(resource_grouppath)
+        for key, path in rg_pathdictionary.iteritems():
             try:
-                resource_elt = self.root.find(resourcepath)
+
+                returndict[key] = resource_group_elt.find(path).text
+            except AttributeError:
+                # Skip this.  It means there's no information for this key
+                pass
+
+        # Resource-specific info
+        resource_elt = resource_group_elt.find(
+            './Resources/Resource/[Name="{0}"]'.format(resourcename))
+        for key, path in r_pathdictionary.iteritems():
+            try:
                 returndict[key] = resource_elt.find(path).text
             except AttributeError:
                 # Skip this.  It means there's no information for this key
                 pass
 
-            # All information that requires a bit more scrubbing
-            returndict['VOOwnership'] = \
-                self.get_VO_Ownership_by_resource(resource_elt)
-            returndict['Contacts'] = \
-                self.get_Contact_Info_by_resource(resource_elt)
+        # All information that requires a bit more scrubbing
+        returndict['VOOwnership'] = \
+            self.get_VO_Ownership_by_resource(resource_elt)
+        returndict['Contacts'] = \
+            self.get_Contact_Info_by_resource(resource_elt)
 
         return returndict
 
