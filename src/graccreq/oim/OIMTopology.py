@@ -9,25 +9,26 @@ pathdictionary = {
     'Facility': '../../Facility/Name',
     'Site': '../../Site/Name',
     'ResourceGroup': '../../GroupName',
-    'Resource': '/Name',
-    'ID': '/ID',
-    'FQDN': '/FQDN',
-    'WLCGAccountingName': '/WLCGInformation/AccountingName'
+    'Resource': './Name',
+    'ID': './ID',
+    'FQDN': './FQDN',
+    'WLCGAccountingName': './WLCGInformation/AccountingName'
 }
+
 
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
     def __init__(self):
         self.e = None
         self.root = None
-        self.resourcepath = None
         self.resourcedict = {}
 
         self.xml_file = self.get_file_from_OIM()
         if self.xml_file:
             self.parse()
 
-    def get_file_from_OIM(self):
+    @staticmethod
+    def get_file_from_OIM():
         """Gets a new file from OIM.  Passes in today's date"""
         today = date.today()
         startdate = today - timedelta(days=7)
@@ -61,8 +62,8 @@ class OIMTopology(object):
         return oim_xml
 
     def parse(self):
-        """Parses XML file using ElementTree.parse().  Also sets XML root for
-        further processing"""
+        """Parses XML file using ElementTree.parse().  Also builds dictionary
+        of Resource Name :{resource information} format for future lookups"""
         try:
             self.e = ET.parse(self.xml_file)
             self.root = self.e.getroot()
@@ -73,69 +74,78 @@ class OIMTopology(object):
             self.xml_file = None
             return
         
-        for resourcename_elt in self.root.findall('./ResourceGroup/Resources/Resource/Name'):
+        for resourcename_elt in self.root.findall('./ResourceGroup/'
+                                                  'Resources/Resource/Name'):
             resourcename = resourcename_elt.text
             if resourcename not in self.resourcedict:
-                self.resourcepath = './ResourceGroup/Resources/Resource/[Name="{0}"]' \
-                    .format(resourcename)
-                self.resourcedict[resourcename] = self.get_resource_information()
+                resourcepath = './ResourceGroup/Resources/' \
+                               'Resource/[Name="{0}"]'.format(resourcename)
+                self.resourcedict[resourcename] = \
+                    self.get_resource_information(resourcepath)
 
         return
 
-    def get_resource_information(self):
+    def get_resource_information(self, resourcepath):
         """Uses parsed XML file and finds the relevant information based on the
         dictionary of XPaths.  Searches by resource.
 
         Global Variable:
-            pathdictionary (dict):  Dictionary of keys : XPaths to find
-                OIM information about those keys from parsed XML file
+            pathdictionary (dict):  Dictionary of keys : Relative
+            XPaths to find OIM information from parsed XML file
 
         Returns dictionary that has relevant OIM information
         """
         returndict = {}
         for key, path in pathdictionary.iteritems():
-            searchpath = '{0}{1}'.format(self.resourcepath, path)
             try:
-                returndict[key] = self.root.find(searchpath).text
+                resource_elt = self.root.find(resourcepath)
+                returndict[key] = resource_elt.find(path).text
             except AttributeError:
                 # Skip this.  It means there's no information for this key
                 pass
 
             # All information that requires a bit more scrubbing
-            returndict['VOOwnership'] = self.get_VO_Ownership_by_resource()
-            returndict['Contacts'] = self.get_Contact_Info_by_resource()
+            returndict['VOOwnership'] = \
+                self.get_VO_Ownership_by_resource(resource_elt)
+            returndict['Contacts'] = \
+                self.get_Contact_Info_by_resource(resource_elt)
 
         return returndict
 
-    def get_VO_Ownership_by_resource(self):
+    @staticmethod
+    def get_VO_Ownership_by_resource(elt):
         """Using resource name and XPath, finds VOOwnership information from
         parsed XML file
+
+        Arguments:
+            elt:  ElementTree Element object (should be Resource Element)
 
         Returns dictionary in VO: Percentage format
         """
         ownershipdict = {}
-        for elt in self.root.find('{0}/VOOwnership'.format(self.resourcepath))\
-                .findall('Ownership'):
-            ownershipdict[elt.find('VO').text] = float(elt.find('Percent')
-                                                       .text)
+        for el in elt.find('./VOOwnership').findall('Ownership'):
+            ownershipdict[el.find('VO').text] = float(el.find('Percent').text)
         return ownershipdict
 
-    def get_Contact_Info_by_resource(self):
+    @staticmethod
+    def get_Contact_Info_by_resource(elt):
         """Finds contact information of a resource by resource name and XPath
         from parsed XML file.
+
+        Arguments:
+            elt:  ElementTree Element object (should be Resource Element)
 
         Returns dictionary of contact information in format
         Name:{Email: 'email_address', ContactRank:'contact_rank'}
         """
         contactsdict = {}
-        for elt in self.root.findall(
-                '{0}/ContactLists/ContactList/'
-                '[ContactType="Resource Report Contact"]/Contacts/Contact'
-                .format(self.resourcepath)):
-            contactsdict[elt.find('Name').text] = {}
-            name = contactsdict[elt.find('Name').text]
+        for el in elt.findall('./ContactLists/ContactList/'
+                              '[ContactType="Resource Report Contact"]'
+                              '/Contacts/Contact'):
+            contactsdict[el.find('Name').text] = {}
+            name = contactsdict[el.find('Name').text]
             name['Email'] = None
-            name['ContactRank'] = str(elt.find('ContactRank').text)
+            name['ContactRank'] = str(el.find('ContactRank').text)
 
         return contactsdict
 
@@ -151,21 +161,10 @@ class OIMTopology(object):
         if not self.xml_file:
             return {}
         
-        
-        
         if resourcename in self.resourcedict:
             return self.resourcedict[resourcename]
         else:
             return {}
-
-        # So we don't have to type this over and over again
-        # self.resourcepath = './ResourceGroup/Resources/Resource/[Name="{0}"]'\
-        #     .format(resourcename)
-        # if self.root.find('{0}'.format(self.resourcepath)) is None:
-        #     print "No Resource with that Name"
-        #     return {}
-
-        # return self.get_resource_information()
 
     def get_information_by_fqdn(self, fqdn):
         """Gets the relevant information from the parsed OIM XML file based on
@@ -184,17 +183,6 @@ class OIMTopology(object):
                     return resourcedict
         else:
             return {}
-
-
-
-        # self.resourcepath = './ResourceGroup/Resources/Resource/[FQDN="{0}"]'\
-        #     .format(fqdn)
-        # if self.root.find('{0}'.format(self.resourcepath)) is None:
-        #     self.resourcepath = './ResourceGroup/Resources/Resource/'\
-        #         '[FQDNAliases="{0}"]'.format(fqdn)
-        # if self.root.find('{0}'.format(self.resourcepath)) is None:
-        #     print "No Resource with that FQDN: {0}".format(fqdn)
-        #     return {}
 
     def check_probe(self, doc):
         """Check to see if ProbeName key is in the gracc record
@@ -234,7 +222,8 @@ class OIMTopology(object):
             # Neither SiteName nor ProbeName is in the record
             return {}
 
-    def check_VO(self, doc, rdict):
+    @staticmethod
+    def check_VO(doc, rdict):
         """Checks the VOName of a GRACC record against the VOOwnership
         dictionary from OIM.
 
@@ -284,10 +273,9 @@ class OIMTopology(object):
 def main():
     # Mainly for testing.
     testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
-                   'ProbeName': 'condor:gate02.grid.umich.edu'}
+               'ProbeName': 'condor:gate02.grid.umich.edu'}
 
     topology = OIMTopology()
-
 
     for i in range(50):
         print datetime.now()
