@@ -175,6 +175,43 @@ class OIMTopology(object):
 
         return contactsdict
 
+    def check_probe(self, doc):
+        """Check to see if ProbeName key is in the gracc record
+
+        Arguments:
+            doc (a dictionary that represents a GRACC record
+
+        Returns a dictionary with the pertinent OIM Topology info, or a blank
+         dictionary if a match was not found
+        """
+        if 'ProbeName' in doc:
+            probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
+            probeinfo = self.get_information_by_fqdn(probe_fqdn)
+            if probeinfo:
+                # Probe matching was successful
+                return probeinfo
+            else:
+                return self.check_site(doc)
+        else:
+            # No ProbeName in record
+            return self.check_site(doc)
+
+    def check_site(self, doc):
+        """Check to see if SiteName key is in the gracc record
+
+        Arguments:
+            doc (a dictionary that represents a GRACC record
+
+        Returns a dictionary with the pertinent OIM Topology info, or a blank
+         dictionary if a match was not found
+        """
+        if 'SiteName' in doc:
+            rawsite = doc['SiteName']
+            return self.get_information_by_resource(rawsite)
+        else:
+            # Neither SiteName nor ProbeName is in the record
+            return {}
+
     def generate_dict_for_gracc(self, doc):
         """Generates a dictionary for appending to GRACC records.  Based on
         the probe name or site name, we return a dictionary with the relevant
@@ -188,31 +225,24 @@ class OIMTopology(object):
         if not self.xml_file:
             return {}
 
-        if 'ProbeName' in doc:
-            probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
-        else:
-            probe_fqdn = ''
-        voname = doc['VOName']
-        rawsite = doc['SiteName']
+        rawdict = self.check_probe(doc)
 
-        rawdict = self.get_information_by_fqdn(probe_fqdn)
-        # If match by fqdn doesn't work, the other mode we should try is
-        # matching OIM resource group to gracc record SiteName.  I've noticed
-        # this to be the case a number of times
         if not rawdict:
-            print "Probename doesn't match FQDN.  " \
-                  "Trying match by SiteName to Resource"
-            rawdict = self.get_information_by_resource(rawsite)
-        if not rawdict:
-            return {}   # If it still doesn't work, return a blank dictionary
+            # None of the matches were successful
+            return {}
+
         returndict = rawdict.copy()
 
-        # Parse VOOwnership to determine opportunistic vs. dedicated
-        if voname.lower() in [elt.lower()
-                              for elt in rawdict['VOOwnership'].keys()]:
-            returndict['UsageModel'] = 'DEDICATED'
+        if 'VOName' in doc:
+            voname = doc['VOName']
+            # Parse VOOwnership to determine opportunistic vs. dedicated
+            if voname.lower() in [elt.lower()
+                                  for elt in rawdict['VOOwnership'].keys()]:
+                returndict['UsageModel'] = 'DEDICATED'
+            else:
+                returndict['UsageModel'] = 'OPPORTUNISTIC'
         else:
-            returndict['UsageModel'] = 'OPPORTUNISTIC'
+            returndict['UsageModel'] = 'UNKNOWN'
 
         # Delete unnecessary keys
         del returndict['Contacts']
