@@ -36,12 +36,16 @@ class GRACCDictTests(BasicOIMTopologyTests):
                            'ProbeName': 'condor:gate02.grid.umich.edu'}
         self.testdoc_ded = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                             'ProbeName': 'condor:gate02.grid.umich.edu'}
-
         self.testdoc_fail_probe = {'SiteName': 'AGLT2_SL6',
                                    'VOName': 'Fermilab',
                                    'ProbeName':
                                        'condor:gate02.grid.umich.edu1231231'}
-
+        self.testdoc_noprobe = {'SiteName': 'AGLT2_SL6',
+                                   'VOName': 'Fermilab'}
+        self.testdoc_nositeorprobe = {'VOName': 'Fermilab'}
+        self.testdoc_no_vo = {'SiteName': 'AGLT2_SL6',
+                                   'ProbeName':
+                                       'condor:gate02.grid.umich.edu1231231'}
         self.testdoc_fail = {'SiteName': 'AGLT2_SL6123123123',
                              'VOName': 'Fermilab',
                              'ProbeName':
@@ -96,6 +100,30 @@ class GRACCDictTests(BasicOIMTopologyTests):
         fail_dict = self.topology.generate_dict_for_gracc(
             self.testdoc_fail)
         self.assertEqual(fail_dict, {})
+        return True
+
+    def test_noprobe(self):
+        """No Probe name in gracc doc at all"""
+        fail_probe = self.topology.generate_dict_for_gracc(
+            self.testdoc_noprobe)
+        self.assertEqual(fail_probe['Facility'], 'University of Michigan')
+        self.assertEqual(fail_probe['Site'], 'AGLT2')
+        self.assertEqual(fail_probe['ResourceGroup'], 'AGLT2')
+        self.assertNotEqual(fail_probe['Resource'],'AGLT2_CE_2')
+        self.assertEqual(fail_probe['Resource'],'AGLT2_SL6')
+        self.assertEqual(fail_probe['UsageModel'], 'OPPORTUNISTIC')
+        return True
+
+    def test_noprobe_nosite(self):
+        fail_probe = self.topology.generate_dict_for_gracc(
+            self.testdoc_nositeorprobe)
+        self.assertFalse(fail_probe)
+        return True
+
+    def test_no_vo(self):
+        fail_probe = self.topology.generate_dict_for_gracc(
+            self.testdoc_no_vo)
+        self.assertEqual(fail_probe['UsageModel'], 'UNKNOWN')
         return True
 
 
