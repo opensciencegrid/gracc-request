@@ -3,7 +3,7 @@ import os
 
 
 setup(name='graccreq',
-      version='2.0',
+      version='2.1',
       description='GRACC Request Daemon',
       author_email='dweitzel@cse.unl.edu',
       author='Derek Weitzel',
