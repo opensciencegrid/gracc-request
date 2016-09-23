@@ -15,7 +15,6 @@ pathdictionary = {
     'WLCGAccountingName': '/WLCGInformation/AccountingName'
 }
 
-
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
     def __init__(self):
@@ -197,7 +196,6 @@ class OIMTopology(object):
         #     print "No Resource with that FQDN: {0}".format(fqdn)
         #     return {}
 
-
     def check_probe(self, doc):
         """Check to see if ProbeName key is in the gracc record
 
@@ -208,7 +206,8 @@ class OIMTopology(object):
          dictionary if a match was not found
         """
         if 'ProbeName' in doc:
-            probe_fqdn = re.match('.+:(.+)', doc['ProbeName']).group(1)
+            probe_exp = re.compile('.+:(.+)')
+            probe_fqdn = probe_exp.match(doc['ProbeName']).group(1)
             probeinfo = self.get_information_by_fqdn(probe_fqdn)
             if probeinfo:
                 # Probe matching was successful
