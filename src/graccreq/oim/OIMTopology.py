@@ -66,7 +66,7 @@ class OIMTopology(object):
         try:
             self.e = ET.parse(self.xml_file)
             self.root = self.e.getroot()
-            print "Parsed file"
+            print "Parsing file"
         except Exception as e:
             print e
             print "Couldn't parse OIM file"
