@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-from datetime import timedelta, date, datetime
+from datetime import timedelta, date
 import urllib2
 import re
 
@@ -295,7 +295,6 @@ def main():
     topology = OIMTopology()
 
     for i in range(50):
-        print datetime.now()
         print topology.generate_dict_for_gracc(testdoc)
 
 
