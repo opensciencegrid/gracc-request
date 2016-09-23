@@ -212,6 +212,23 @@ class OIMTopology(object):
             # Neither SiteName nor ProbeName is in the record
             return {}
 
+    def check_VO(self, doc, rdict):
+        """Checks the VOName of a GRACC record against the VOOwnership
+        dictionary from OIM.
+
+        Returns a string of 'DEDICATED', 'OPPORTUNISTIC', or 'UNKNOWN'
+        """
+        if 'VOName' in doc:
+            voname = doc['VOName']
+            # Parse VOOwnership to determine opportunistic vs. dedicated
+            if voname.lower() in [elt.lower()
+                                  for elt in rdict['VOOwnership'].keys()]:
+                return 'DEDICATED'
+            else:
+                return 'OPPORTUNISTIC'
+        else:
+            return 'UNKNOWN'
+
     def generate_dict_for_gracc(self, doc):
         """Generates a dictionary for appending to GRACC records.  Based on
         the probe name or site name, we return a dictionary with the relevant
@@ -232,17 +249,7 @@ class OIMTopology(object):
             return {}
 
         returndict = rawdict.copy()
-
-        if 'VOName' in doc:
-            voname = doc['VOName']
-            # Parse VOOwnership to determine opportunistic vs. dedicated
-            if voname.lower() in [elt.lower()
-                                  for elt in rawdict['VOOwnership'].keys()]:
-                returndict['UsageModel'] = 'DEDICATED'
-            else:
-                returndict['UsageModel'] = 'OPPORTUNISTIC'
-        else:
-            returndict['UsageModel'] = 'UNKNOWN'
+        returndict['UsageModel'] = self.check_VO(doc, rawdict)
 
         # Delete unnecessary keys
         del returndict['Contacts']
