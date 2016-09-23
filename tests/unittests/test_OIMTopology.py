@@ -10,7 +10,6 @@ class BasicOIMTopologyTests(unittest.TestCase):
         self.topology = OIMTopology.OIMTopology()
 
     def test_all(self):
-        testdict = self.topology.get_information_by_fqdn('fifebatch1.fnal.gov')
         self.testdoc_op = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
                            'ProbeName': 'condor:gate02.grid.umich.edu'}
         self.testdoc_ded = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
@@ -30,7 +29,8 @@ class BasicOIMTopologyTests(unittest.TestCase):
                              'ProbeName':
                                  'condor:gate02.grid.umich.edu1231231'}
 
-        # FQDN
+        # FQDN lookup
+        testdict = self.topology.get_information_by_fqdn('fifebatch1.fnal.gov')
         self.assertEqual(testdict['Facility'], 'Fermi National Accelerator'
                                                ' Laboratory')
         self.assertEqual(testdict['Site'], 'FermiGrid')
