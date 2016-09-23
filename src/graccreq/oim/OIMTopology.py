@@ -1,7 +1,6 @@
 import xml.etree.ElementTree as ET
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 import urllib2
-from os.path import exists
 import re
 
 
@@ -23,6 +22,7 @@ class OIMTopology(object):
         self.e = None
         self.root = None
         self.resourcepath = None
+        self.resourcedict = {}
 
         self.xml_file = self.get_file_from_OIM()
         if self.xml_file:
@@ -72,51 +72,16 @@ class OIMTopology(object):
             print e
             print "Couldn't parse OIM file"
             self.xml_file = None
+            return
+        
+        for resourcename_elt in self.root.findall('./ResourceGroup/Resources/Resource/Name'):
+            resourcename = resourcename_elt.text
+            if resourcename not in self.resourcedict:
+                self.resourcepath = './ResourceGroup/Resources/Resource/[Name="{0}"]' \
+                    .format(resourcename)
+                self.resourcedict[resourcename] = self.get_resource_information()
+
         return
-
-    def get_information_by_resource(self, resourcename):
-        """Gets the relevant information from the parsed OIM XML file based on
-        the Resource Name.  Meant to be called after OIMTopology.parse().
-
-        Arguments:
-            resourcename (string) - Resource Name
-
-        Returns: Dictionary that has relevant OIM information
-        """
-        if not self.xml_file:
-            return {}
-
-        # So we don't have to type this over and over again
-        self.resourcepath = './ResourceGroup/Resources/Resource/[Name="{0}"]'\
-            .format(resourcename)
-        if self.root.find('{0}'.format(self.resourcepath)) is None:
-            print "No Resource with that Name"
-            return {}
-
-        return self.get_resource_information()
-
-    def get_information_by_fqdn(self, fqdn):
-        """Gets the relevant information from the parsed OIM XML file based on
-        the FQDN.  Meant to be called after OIMTopology.parse().
-
-        Arguments:
-            fqdn (string) - FQDN of the resource
-
-        Returns: Dictionary that has relevant OIM information"""
-        if not self.xml_file:
-            return {}
-
-        # So we don't have to type this over and over again
-        self.resourcepath = './ResourceGroup/Resources/Resource/[FQDN="{0}"]'\
-            .format(fqdn)
-        if self.root.find('{0}'.format(self.resourcepath)) is None:
-            self.resourcepath = './ResourceGroup/Resources/Resource/'\
-                '[FQDNAliases="{0}"]'.format(fqdn)
-        if self.root.find('{0}'.format(self.resourcepath)) is None:
-            print "No Resource with that FQDN: {0}".format(fqdn)
-            return {}
-
-        return self.get_resource_information()
 
     def get_resource_information(self):
         """Uses parsed XML file and finds the relevant information based on the
@@ -174,6 +139,64 @@ class OIMTopology(object):
             name['ContactRank'] = str(elt.find('ContactRank').text)
 
         return contactsdict
+
+    def get_information_by_resource(self, resourcename):
+        """Gets the relevant information from the parsed OIM XML file based on
+        the Resource Name.  Meant to be called after OIMTopology.parse().
+
+        Arguments:
+            resourcename (string) - Resource Name
+
+        Returns: Dictionary that has relevant OIM information
+        """
+        if not self.xml_file:
+            return {}
+        
+        
+        
+        if resourcename in self.resourcedict:
+            return self.resourcedict[resourcename]
+        else:
+            return {}
+
+        # So we don't have to type this over and over again
+        # self.resourcepath = './ResourceGroup/Resources/Resource/[Name="{0}"]'\
+        #     .format(resourcename)
+        # if self.root.find('{0}'.format(self.resourcepath)) is None:
+        #     print "No Resource with that Name"
+        #     return {}
+
+        # return self.get_resource_information()
+
+    def get_information_by_fqdn(self, fqdn):
+        """Gets the relevant information from the parsed OIM XML file based on
+        the FQDN.  Meant to be called after OIMTopology.parse().
+
+        Arguments:
+            fqdn (string) - FQDN of the resource
+
+        Returns: Dictionary that has relevant OIM information"""
+        if not self.xml_file:
+            return {}
+
+        for resourcename, resourcedict in self.resourcedict.iteritems():
+            if 'FQDN' in resourcedict:
+                if resourcedict['FQDN'] == fqdn:
+                    return resourcedict
+        else:
+            return {}
+
+
+
+        # self.resourcepath = './ResourceGroup/Resources/Resource/[FQDN="{0}"]'\
+        #     .format(fqdn)
+        # if self.root.find('{0}'.format(self.resourcepath)) is None:
+        #     self.resourcepath = './ResourceGroup/Resources/Resource/'\
+        #         '[FQDNAliases="{0}"]'.format(fqdn)
+        # if self.root.find('{0}'.format(self.resourcepath)) is None:
+        #     print "No Resource with that FQDN: {0}".format(fqdn)
+        #     return {}
+
 
     def check_probe(self, doc):
         """Check to see if ProbeName key is in the gracc record
@@ -265,7 +288,11 @@ def main():
                    'ProbeName': 'condor:gate02.grid.umich.edu'}
 
     topology = OIMTopology()
-    print topology.generate_dict_for_gracc(testdoc)
+
+
+    for i in range(50):
+        print datetime.now()
+        print topology.generate_dict_for_gracc(testdoc)
 
 
 if __name__ == '__main__':
