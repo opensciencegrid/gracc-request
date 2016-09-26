@@ -6,8 +6,9 @@ from graccreq.oim import OIMTopology
 
 
 class BasicOIMTopologyTests(unittest.TestCase):
+    @classmethod
     def setUpClass(cls):
-        self.topology = OIMTopology.OIMTopology()
+        cls.topology = OIMTopology.OIMTopology()
 
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
@@ -30,33 +31,34 @@ class BasicOIMTopologyTests(unittest.TestCase):
 
 
 class GRACCDictTests(BasicOIMTopologyTests):
-    def setUp(self):
-        super(GRACCDictTests, self).setUp()
-        self.testdoc_op = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
+    @classmethod
+    def setUpClass(cls):
+#        super(GRACCDictTests, cls).setUpClass()
+        cls.testdoc_op = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
                            'ProbeName': 'condor:gate02.grid.umich.edu'}
-        self.testdoc_ded = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+        cls.testdoc_ded = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                             'ProbeName': 'condor:gate02.grid.umich.edu'}
-        self.testdoc_fail_probe = {'SiteName': 'AGLT2_SL6',
+        cls.testdoc_fail_probe = {'SiteName': 'AGLT2_SL6',
                                    'VOName': 'Fermilab',
                                    'ProbeName':
                                        'condor:gate02.grid.umich.edu1231231'}
-        self.testdoc_noprobe = {'SiteName': 'AGLT2_SL6',
+        cls.testdoc_noprobe = {'SiteName': 'AGLT2_SL6',
                                    'VOName': 'Fermilab'}
-        self.testdoc_nositeorprobe = {'VOName': 'Fermilab'}
-        self.testdoc_no_vo = {'SiteName': 'AGLT2_SL6',
+        cls.testdoc_nositeorprobe = {'VOName': 'Fermilab'}
+        cls.testdoc_no_vo = {'SiteName': 'AGLT2_SL6',
                                    'ProbeName':
                                        'condor:gate02.grid.umich.edu1231231'}
-        self.testdoc_fail = {'SiteName': 'AGLT2_SL6123123123',
+        cls.testdoc_fail = {'SiteName': 'AGLT2_SL6123123123',
                              'VOName': 'Fermilab',
                              'ProbeName':
                                  'condor:gate02.grid.umich.edu1231231'}
-        self.topology2 = OIMTopology.OIMTopology()
 
     def test_blankdict(self):
         """If URL retrieval fails or parsing didn't work, we should get a
         blank dictionary"""
-        self.topology2.xml_file = None  # URL retrieval or parsing didn't work
-        test_dict = self.topology2.generate_dict_for_gracc(self.testdoc_ded)
+        topology2 = OIMTopology.OIMTopology()
+        topology2.xml_file = None  # URL retrieval or parsing didn't work
+        test_dict = topology2.generate_dict_for_gracc(self.testdoc_ded)
         self.assertFalse(test_dict)
         return True
 
