@@ -33,7 +33,6 @@ class BasicOIMTopologyTests(unittest.TestCase):
 class GRACCDictTests(BasicOIMTopologyTests):
     @classmethod
     def setUpClass(cls):
-#        super(GRACCDictTests, cls).setUpClass()
         cls.testdoc_op = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
                            'ProbeName': 'condor:gate02.grid.umich.edu'}
         cls.testdoc_ded = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
@@ -52,6 +51,19 @@ class GRACCDictTests(BasicOIMTopologyTests):
                              'VOName': 'Fermilab',
                              'ProbeName':
                                  'condor:gate02.grid.umich.edu1231231'}
+        cls.testdoc_payload_suc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+                                   'ProbeName': 'condor:gate02.grid.umich.edu',
+                                   'Host_description': 'BNL_ATLAS_1',
+                                   'ResourceType': 'Payload'}
+        cls.testdoc_payload_site = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+                                    'Host_description': 'UConn-OSG',
+                                    'ResourceType': 'Payload'}
+        cls.testdoc_payload_rg = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+                                  'Host_description': 'Hyak',
+                                  'ResourceType': 'Payload'}
+        cls.testdoc_payload_fail = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+                                    'Host_description': 'GPGrid12345',
+                                    'ResourceType': 'Payload'}
 
     def test_blankdict(self):
         """If URL retrieval fails or parsing didn't work, we should get a
@@ -126,6 +138,49 @@ class GRACCDictTests(BasicOIMTopologyTests):
         fail_probe = self.topology.generate_dict_for_gracc(
             self.testdoc_no_vo)
         self.assertEqual(fail_probe['UsageModel'], 'UNKNOWN')
+        return True
+
+    def test_payload(self):
+        """Payload record - should be successful match for BNL_ATLAS_1
+        resource"""
+        pg = self.topology.generate_dict_for_gracc(self.testdoc_payload_suc)
+        self.assertEqual(pg['Facility'], 'Brookhaven National Laboratory')
+        self.assertEqual(pg['Site'], 'Brookhaven ATLAS Tier1')
+        self.assertEqual(pg['ResourceGroup'], 'BNL-ATLAS')
+        self.assertEqual(pg['Resource'], 'BNL_ATLAS_1')
+        self.assertEqual(pg['UsageModel'], 'DEDICATED')
+        return True
+
+    def test_payload_site(self):
+        """Payload record - should be successful match for UConn-OSG Site"""
+        st = self.topology.generate_dict_for_gracc(self.testdoc_payload_site)
+        self.assertEqual(st['Facility'], 'University of Connecticut')
+        self.assertEqual(st['Site'], 'UConn-OSG')
+        rg = st.get('ResourceGroup')
+        res = st.get('Resource')
+        um = st.get('UsageModel')
+        self.assertFalse(rg)
+        self.assertFalse(res)
+        self.assertFalse(um)
+        return True
+
+    def test_payload_rg(self):
+        """Payload record - should be successful match for Hyak Resource
+        Group"""
+        rg = self.topology.generate_dict_for_gracc(self.testdoc_payload_rg)
+        self.assertEqual(rg['Facility'], 'University of Washington')
+        self.assertEqual(rg['Site'], 'UW-IT')
+        self.assertEqual(rg['ResourceGroup'], 'Hyak')
+        res = rg.get('Resource')
+        um = rg.get('UsageModel')
+        self.assertFalse(res)
+        self.assertFalse(um)
+        return True
+    
+    def test_payload_fail(self):
+        """Payload record - should fail to match"""
+        fail = self.topology.generate_dict_for_gracc(self.testdoc_payload_fail)
+        self.assertFalse(fail)
         return True
 
 
