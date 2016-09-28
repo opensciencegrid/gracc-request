@@ -196,14 +196,50 @@ class OIMTopology(object):
             return {}
 
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'FQDN' in resourcedict:
-                if resourcedict['FQDN'] == fqdn:
-                    return resourcedict
+            if 'FQDN' in resourcedict and resourcedict['FQDN'] == fqdn:
+                return resourcedict
         else:
             return {}
+
+    def get_information_by_site(self, sitename):
+        if not self.xml_file:
+            return {}
+
+        returndict = {}
+        for resourcename, resourcedict in self.resourcedict.iteritems():
+            if 'Site' in resourcedict and resourcedict['Site'] == sitename:
+                returndict['Site'] = resourcedict['Site']
+                returndict['Facility'] = resourcedict['Facility']
+        return returndict
+
+    def get_information_by_resourcegroup(self, rgname):
+        if not self.xml_file:
+            return {}
+
+        returndict = {}
+        for resourcename, resourcedict in self.resourcedict.iteritems():
+            if 'ResourceGroup' in resourcedict and \
+                            resourcedict['ResourceGroup'] == rgname:
+                returndict['Site'] = resourcedict['Site']
+                returndict['Facility'] = resourcedict['Facility']
+                returndict['ResourceGroup'] = resourcedict['ResourceGroup']
+        return returndict
+
+    def check_hostdescription(self, doc):
+        #Match host desc to resource name
+        # if that fails, to site
+        # if that fails, return {}
+
+        returndict = self.get_information_by_resource(doc['Host_description'])
+        if not returndict:
+            returndict = self.get_information_by_site(doc['Host_description'])
+        if not returndict:
+            returndict = \
+                self.get_information_by_resourcegroup(doc['Host_description'])
+        return returndict
 
     def check_probe(self, doc):
-        """Check to see if ProbeName key is in the gracc record
+        """Gets information from OIM based on the probe name passed in
 
         Arguments:
             doc (a dictionary that represents a GRACC record
@@ -211,20 +247,11 @@ class OIMTopology(object):
         Returns a dictionary with the pertinent OIM Topology info, or a blank
          dictionary if a match was not found
         """
-        if 'ProbeName' in doc:
-            probe_fqdn = self.probe_exp.match(doc['ProbeName']).group(1)
-            probeinfo = self.get_information_by_fqdn(probe_fqdn)
-            if probeinfo:
-                # Probe matching was successful
-                return probeinfo
-            else:
-                return self.check_site(doc)
-        else:
-            # No ProbeName in record
-            return self.check_site(doc)
+        probe_fqdn = self.probe_exp.match(doc['ProbeName']).group(1)
+        return self.get_information_by_fqdn(probe_fqdn)
 
-    def check_site(self, doc):
-        """Check to see if SiteName key is in the gracc record
+    def check_site_to_resource(self, doc):
+        """Note:  This matches on Gracc SiteName = OIM Resource Name!
 
         Arguments:
             doc (a dictionary that represents a GRACC record
@@ -232,12 +259,7 @@ class OIMTopology(object):
         Returns a dictionary with the pertinent OIM Topology info, or a blank
          dictionary if a match was not found
         """
-        if 'SiteName' in doc:
-            rawsite = doc['SiteName']
-            return self.get_information_by_resource(rawsite)
-        else:
-            # Neither SiteName nor ProbeName is in the record
-            return {}
+        return self.get_information_by_resource(doc['SiteName'])
 
     @staticmethod
     def check_VO(doc, rdict):
@@ -270,19 +292,31 @@ class OIMTopology(object):
         if not self.xml_file:
             return {}
 
-        rawdict = self.check_probe(doc)
+        rawdict = {}
+        if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
+            # Payload records should be matched on host description
+            rawdict = self.check_hostdescription(doc)
+        elif 'ProbeName' in doc:
+            rawdict = self.check_probe(doc)
+            if not rawdict:
+                rawdict = self.check_site_to_resource(doc)
+        elif 'SiteName' in doc:
+            rawdict = self.check_site_to_resource(doc)
 
         if not rawdict:
             # None of the matches were successful
             return {}
 
         returndict = rawdict.copy()
-        returndict['UsageModel'] = self.check_VO(doc, rawdict)
 
+        if 'VOOwnership' in returndict:
+            returndict['UsageModel'] = self.check_VO(doc, rawdict)
+
+        keys_to_delete = ['Contacts', 'VOOwnership', 'ID']
         # Delete unnecessary keys
-        del returndict['Contacts']
-        del returndict['VOOwnership']
-        del returndict['ID']
+        for key in keys_to_delete:
+            if key in returndict:
+                del returndict[key]
 
         return returndict
 
@@ -292,7 +326,14 @@ def main():
     testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                'ProbeName': 'condor:gate02.grid.umich.edu'}
 
+    testdoc_payload_suc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+                               'ProbeName': 'condor:gate02.grid.umich.edu',
+                               'Host_description': 'BNL_ATLAS_1',
+                               'ResourceType': 'Payload'}
+
     topology = OIMTopology()
+
+    print topology.generate_dict_for_gracc(testdoc)
 
     for i in range(50):
         print topology.generate_dict_for_gracc(testdoc)
