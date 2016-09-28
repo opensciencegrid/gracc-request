@@ -202,6 +202,14 @@ class OIMTopology(object):
             return {}
 
     def get_information_by_site(self, sitename):
+        """Gets the relevant information from the parsed OIM XML file based on
+        the Site Name.  Meant to be called after OIMTopology.parse().
+
+        Arguments:
+            sitename (string) - Site Name
+
+        Returns: Dictionary that has relevant OIM information
+        """
         if not self.xml_file:
             return {}
 
@@ -213,6 +221,14 @@ class OIMTopology(object):
         return returndict
 
     def get_information_by_resourcegroup(self, rgname):
+        """Gets the relevant information from the parsed OIM XML file based on
+        the Resource Group Name.  Meant to be called after OIMTopology.parse().
+
+        Arguments:
+            rgname (string) - Resource Name
+
+        Returns: Dictionary that has relevant OIM information
+        """
         if not self.xml_file:
             return {}
 
@@ -226,6 +242,14 @@ class OIMTopology(object):
         return returndict
 
     def check_hostdescription(self, doc):
+        """Matches host description to resource name, site name, or resource
+        group name (in that order)
+
+        Arguments:
+            doc (dict):  GRACC record
+
+        Returns dictionary of relevant information to append to GRACC record
+        """
         #Match host desc to resource name
         # if that fails, to site
         # if that fails, return {}
@@ -326,14 +350,7 @@ def main():
     testdoc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                'ProbeName': 'condor:gate02.grid.umich.edu'}
 
-    testdoc_payload_suc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
-                               'ProbeName': 'condor:gate02.grid.umich.edu',
-                               'Host_description': 'BNL_ATLAS_1',
-                               'ResourceType': 'Payload'}
-
     topology = OIMTopology()
-
-    print topology.generate_dict_for_gracc(testdoc)
 
     for i in range(50):
         print topology.generate_dict_for_gracc(testdoc)
