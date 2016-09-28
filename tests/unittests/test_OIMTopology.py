@@ -68,7 +68,10 @@ class GRACCDictTests(BasicOIMTopologyTests):
     def test_blankdict(self):
         """If URL retrieval fails or parsing didn't work, we should get a
         blank dictionary"""
-        topology2 = OIMTopology.OIMTopology()
+        class Empty(self.topology.__class__):
+            def __init__(self): pass
+        topology2 = Empty()
+        topology2.__class__ = self.topology.__class__
         topology2.xml_file = None  # URL retrieval or parsing didn't work
         test_dict = topology2.generate_dict_for_gracc(self.testdoc_ded)
         self.assertFalse(test_dict)
