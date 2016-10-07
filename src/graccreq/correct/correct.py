@@ -9,7 +9,7 @@ class Corrections:
     """
     Generic class for correcting fields based on lookup to Elasticseearch table.
 
-    The corrections are fetched when the class is instantiated and cached. Call
+    The corrections are fetched and cached when the class is instantiated. Call
     fetch_corrections() to refresh the cache.
     """
     def __init__(self, uri, index, doc_type, match_fields, source_field, dest_field):
