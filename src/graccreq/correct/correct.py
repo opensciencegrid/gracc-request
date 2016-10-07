@@ -6,57 +6,103 @@ from elasticsearch.exceptions import ElasticsearchException
 logger = logging.getLogger(__name__)
 
 class Corrections:
-    def __init__(self, elasticsearch_uri, index):
-        self.vos = {}
-        self.projects = {}
+    """
+    Generic class for correcting fields based on lookup to Elasticseearch table.
+
+    The corrections are fetched when the class is instantiated and cached. Call
+    fetch_corrections() to refresh the cache.
+    """
+    def __init__(self, uri, index, doc_type, match_fields, source_field, dest_field):
+        """
+        :param str uri: base URI to Elasticsearch REST API
+        :param str index: Elasticsearch index to fetch corrections from.
+        :param str doc_type: Elasticsearch document type to fetch corrections from.
+        :param list match_fields: list of fields that are used to look up the corrections.
+            The field names must be the same in the document and in the lookup index.
+        :param str source_field: Field name in the lookup index containing the corrected name.
+        :param str dest_field: Field name in the document .
+        """
+        self.es_uri = uri
+        self.es_index = index
+        self.es_doc_type = doc_type
+        self.match_fields = match_fields
+        self.source_field = source_field
+        self.dest_field = dest_field
+
+        self.fetch_corrections()
+
+    def fetch_corrections(self):
+        """
+        Fetch corrections from Elasticsearch and cache them. Successive calls will overwrite the cache.
+
+        Corrections are stored in flat dict using a lookup key generated from the match fields by _key().
+        """
+        self.corrections = {}
         try:
-            client = Elasticsearch(elasticsearch_uri, timeout=300)
-            s = scan(client=client, index=index, scroll='10m')
+            client = Elasticsearch(self.es_uri, timeout=300)
+            s = scan(client=client, index=self.es_index, doc_type=self.es_doc_type, scroll='10m')
             for doc in s:
-                type = doc.get('_type')
-                source = doc.get('_source',{})
-                if type == 'vo' \
-                   and 'VOName' in source \
-                   and 'ReportableVOName' in source \
-                   and 'CorrectedVOName' in source:
-                    self.vos[str(source['VOName'])+str(source['ReportableVOName'])] = source['CorrectedVOName']
-                elif type == 'project' \
-                     and 'ProjectName' in source \
-                     and 'CorrectedProjectName' in source:
-                    self.projects[str(source['ProjectName'])] = source['CorrectedProjectName']
+                self._add_correction(doc)
         except ElasticsearchException as e:
             logger.error('unable to fetch corrections: {}'.format(e))
         else:
-            logger.info('loaded {} vo and {} project name corrections from {}/{}'.
-                        format(len(self.vos),
-                               len(self.projects),
-                               elasticsearch_uri,
-                               index))
+            logger.info('loaded {} corrections from {}/{}/{}'.
+                        format(len(self.corrections),
+                               self.es_uri,
+                               self.es_index,
+                               self.es_doc_type))
 
-    def correct_vo(self, vo_name, reportable_vo_name):
+    def _key(self, doc):
         """
-        Returns corrected VO name, or vo_name if there is no correction.
-        """
-        return self.vos.get(str(vo_name)+str(reportable_vo_name), vo_name)
+        Generate lookup key using the fields in the doc.
 
-    def correct_project(self, project_name):
+        :param dict doc: record document containing fields as keys
         """
-        Returns corrected project name, or project_name if there is no correction.
+        return '--'.join([str(doc.get(f,'__')) for f in self.match_fields])
+
+    def _add_correction(self, doc):
         """
-        return self.projects.get(str(project_name), project_name)
+        Add correction to cache.
+
+        :param dict doc: Elasticsearch document
+        """
+        source = doc.get('_source',{})
+        ## make sure all the fields are there
+        for field in self.match_fields:
+            if field not in source:
+                logger.warning('match field {} missing for correction document (id={})'.format(field,doc['_id']))
+                return
+        if self.source_field not in source:
+                logger.warning('source field {} missing for correction document (id={})'.format(self.source_field,doc['_id']))
+        ## add to cache using generated key
+        self.corrections[self._key(source)] = source[self.source_field]
 
     def correct(self, rec):
         """
-        Corrects fields in the raw JobUsageRecord.
+        Corrects fields in the raw JobUsageRecord. The record is mutated by correcting
+        the appropriate field, and adding a new field named Raw<corrected field name>
+        with the original value.
+
+        :param dict rec: record document
+        :return dict: record document
         """
-        if 'VOName' in rec and 'ReportableVOName' in rec:
-            rec['VOName'] = self.correct_vo(rec['VOName'], rec['ReportableVOName'])
-        if 'ProjectName' in rec:
-            rec['ProjectName'] = self.correct_project(rec['ProjectName'])
+        for field in self.match_fields:
+            if field not in rec:
+                return rec
+        key = self._key(rec)
+        if key in self.corrections:
+            rec['Raw'+self.dest_field] = rec[self.dest_field]
+            rec[self.dest_field] = self.corrections[key]
+        return rec
+
 
 if __name__ == '__main__':
     import urllib3
     urllib3.disable_warnings()
     logging.basicConfig(level=logging.INFO)
-    c = NameCorrections(elasticsearch_uri = 'https://gracc.opensciencegrid.org/q',
-                        index = 'gracc.corrections')
+    c = Corrections(uri = 'https://gracc.opensciencegrid.org/q',
+                    index = 'gracc.corrections',
+                    doc_type = 'vo',
+                    match_fields = ['VOName','ReportableVOName'],
+                    source_field = 'CorrectedVOName',
+                    dest_field = 'VOName')
