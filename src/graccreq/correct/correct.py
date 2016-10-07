@@ -86,12 +86,12 @@ class Corrections:
         :param dict rec: record document
         :return dict: record document
         """
+        rec['Raw'+self.dest_field] = rec.get(self.dest_field,'')
         for field in self.match_fields:
             if field not in rec:
                 return rec
         key = self._key(rec)
         if key in self.corrections:
-            rec['Raw'+self.dest_field] = rec[self.dest_field]
             rec[self.dest_field] = self.corrections[key]
         return rec
 
