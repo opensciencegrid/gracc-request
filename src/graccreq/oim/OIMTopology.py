@@ -271,8 +271,12 @@ class OIMTopology(object):
         Returns a dictionary with the pertinent OIM Topology info, or a blank
          dictionary if a match was not found
         """
-        probe_fqdn = self.probe_exp.match(doc['ProbeName']).group(1)
-        return self.get_information_by_fqdn(probe_fqdn)
+        probe_fqdn_check = self.probe_exp.match(doc['ProbeName'])
+        if probe_fqdn_check:
+            probe_fqdn = probe_fqdn_check.group(1)
+            return self.get_information_by_fqdn(probe_fqdn)
+        else:
+            return {}
 
     def check_site_to_resource(self, doc):
         """Note:  This matches on Gracc SiteName = OIM Resource Name!
