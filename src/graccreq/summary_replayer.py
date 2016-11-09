@@ -4,12 +4,14 @@ import sys
 import logging
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+from elasticsearch_dsl.query import Q
 import traceback
 import replayer
 import dateutil
 import copy
 import datetime
 from graccreq.oim import projects, OIMTopology
+from graccreq.correct import Corrections
 
 
 def SummaryReplayerFactory(msg, parameters, config):
@@ -32,6 +34,16 @@ class SummaryReplayer(replayer.Replayer):
 
         # Initialize the OIM Topology information
         self.topology = OIMTopology.OIMTopology()
+
+        # Initiatlize name corrections
+        self.corrections = []
+        for c in self._config.get('Corrections',[]):
+            self.corrections.append(Corrections(uri=self._config['ElasticSearch'].get('uri','http://localhost:9200'),
+                                                index=c['index'],
+                                                doc_type=c['doc_type'],
+                                                match_fields=c['match_fields'],
+                                                source_field=c['source_field'],
+                                                dest_field=c['dest_field']))
         
     def run(self):
         logging.debug("Beggining run of SummaryReplayer")
@@ -46,6 +58,8 @@ class SummaryReplayer(replayer.Replayer):
         try:
             for day in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
                 for record in day:
+                    for c in self.corrections:
+                        c.correct(record)
                     self.addProperties(record)
                     self.sendMessage(json.dumps(record))
         except Exception, e:
@@ -61,7 +75,7 @@ class SummaryReplayer(replayer.Replayer):
 
     def on_return(self, channel, method, properties, body):
         sys.stderr.write("Got returned message\n")
-        
+
     def addProperties(self, record):
 
         returned_doc = self.project.parseDoc(record)
@@ -83,6 +97,7 @@ class SummaryReplayer(replayer.Replayer):
         logging.debug("Beginning search")
         s = Search(using=client, index=self._config['ElasticSearch']['raw_index'])
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
+        s = s.query('bool', must=[Q('match', _type=self._config['ElasticSearch']['raw_type'])])
         
         # Fill in the unique terms and metrics
         unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]

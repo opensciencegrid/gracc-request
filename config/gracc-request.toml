@@ -12,4 +12,20 @@ exchange = 'gracc.osg.requests'
 queue = 'gracc.osg.requests'
 
 [ElasticSearch]
+uri = 'http://localhost:9200'
 raw_index = 'gracc.osg.raw0-*'
+raw_type = 'JobUsageRecord'
+
+[[Corrections]]
+index = 'gracc.corrections'
+doc_type = 'vo'
+match_fields = ['VOName','ReportableVOName']
+source_field = 'CorrectedVOName'
+dest_field = 'VOName'
+
+[[Corrections]]
+index = 'gracc.corrections'
+doc_type = 'project'
+match_fields = ['ProjectName']
+source_field = 'CorrectedProjectName'
+dest_field = 'ProjectName'

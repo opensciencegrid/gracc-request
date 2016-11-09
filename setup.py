@@ -3,13 +3,13 @@ import os
 
 
 setup(name='graccreq',
-      version='2.2',
+      version='2.3',
       description='GRACC Request Daemon',
       author_email='dweitzel@cse.unl.edu',
       author='Derek Weitzel',
       url='https://opensciencegrid.github.io/gracc',
       package_dir={'': 'src'},
-      packages=['graccreq', 'graccreq.oim'],
+      packages=['graccreq', 'graccreq.oim', 'graccreq.correct'],
       install_requires=['elasticsearch',
       'elasticsearch-dsl',
       'pika',
