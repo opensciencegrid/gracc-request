@@ -14,6 +14,7 @@ queue = 'gracc.osg.requests'
 [ElasticSearch]
 uri = 'http://localhost:9200'
 raw_index = 'gracc.osg.raw0-*'
+raw_type = 'JobUsageRecord'
 
 [[Corrections]]
 index = 'gracc.corrections'
