@@ -36,7 +36,7 @@ class SummaryReplayer(replayer.Replayer):
         self.topology = OIMTopology.OIMTopology()
         
     def run(self):
-        if config['General']['Profile']:
+        if self._config['General']['Profile']:
             logging.debug("Staring profiler")
             import cProfile
             pr = cProfile.Profile()
@@ -65,7 +65,7 @@ class SummaryReplayer(replayer.Replayer):
         
         self.conn.close()
         
-        if config['General']['Profile']:
+        if self._config['General']['Profile']:
             logging.debug("Stopping profiler")
             pr.disable()
             s = StringIO.StringIO()
