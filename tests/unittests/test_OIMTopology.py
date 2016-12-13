@@ -13,20 +13,21 @@ class BasicOIMTopologyTests(unittest.TestCase):
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
         testdict = self.topology.get_information_by_fqdn('fifebatch1.fnal.gov')
-        self.assertEqual(testdict['OIMFacility'], 'Fermi National Accelerator'
+        self.assertEqual(testdict['OIM_Facility'], 'Fermi National Accelerator'
                                                ' Laboratory')
-        self.assertEqual(testdict['OIMSite'], 'FermiGrid')
-        self.assertEqual(testdict['OIMResourceGroup'], 'FNAL_FIFE_SUBMIT')
-        self.assertEqual(testdict['OIMResource'],'FIFE_SUBMIT_1')
+        self.assertEqual(testdict['OIM_Site'], 'FermiGrid')
+        self.assertEqual(testdict['OIM_ResourceGroup'], 'FNAL_FIFE_SUBMIT')
+        self.assertEqual(testdict['OIM_Resource'],'FIFE_SUBMIT_1')
         return True
 
     def test_resource(self):
         """OIMTopology match by gracc SiteName to topology resource"""
         testdict = self.topology.get_information_by_resource('AGLT2_SL6')
-        self.assertEqual(testdict['OIMFacility'], 'University of Michigan')
-        self.assertEqual(testdict['OIMSite'], 'AGLT2')
-        self.assertEqual(testdict['OIMResourceGroup'], 'AGLT2')
-        self.assertEqual(testdict['OIMResource'],'AGLT2_SL6')
+        self.assertEqual(testdict['OIM_Facility'], 'University of Michigan')
+        self.assertEqual(testdict['OIM_Site'], 'AGLT2')
+        self.assertEqual(testdict['OIM_ResourceGroup'], 'AGLT2')
+        self.assertEqual(testdict['OIM_Resource'],'AGLT2_SL6')
+        self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], '10.16')
         return True
 
 
@@ -81,22 +82,22 @@ class GRACCDictTests(BasicOIMTopologyTests):
         """Matching by probename, so the incorrect SiteName should be
         ignored"""
         ded = self.topology.generate_dict_for_gracc(self.testdoc_ded)
-        self.assertEqual(ded['OIMFacility'], 'University of Michigan')
-        self.assertEqual(ded['OIMSite'], 'AGLT2')
-        self.assertEqual(ded['OIMResourceGroup'], 'AGLT2')
-        self.assertEqual(ded['OIMResource'],'AGLT2_CE_2')
-        self.assertEqual(ded['OIMUsageModel'], 'DEDICATED')
+        self.assertEqual(ded['OIM_Facility'], 'University of Michigan')
+        self.assertEqual(ded['OIM_Site'], 'AGLT2')
+        self.assertEqual(ded['OIM_ResourceGroup'], 'AGLT2')
+        self.assertEqual(ded['OIM_Resource'],'AGLT2_CE_2')
+        self.assertEqual(ded['OIM_UsageModel'], 'DEDICATED')
         return True
 
     def test_opportunistic(self):
         """Matching by probename, so the incorrect SiteName should be
         ignored"""
         op = self.topology.generate_dict_for_gracc(self.testdoc_op)
-        self.assertEqual(op['OIMFacility'], 'University of Michigan')
-        self.assertEqual(op['OIMSite'], 'AGLT2')
-        self.assertEqual(op['OIMResourceGroup'], 'AGLT2')
-        self.assertEqual(op['OIMResource'], 'AGLT2_CE_2')
-        self.assertEqual(op['OIMUsageModel'], 'OPPORTUNISTIC')
+        self.assertEqual(op['OIM_Facility'], 'University of Michigan')
+        self.assertEqual(op['OIM_Site'], 'AGLT2')
+        self.assertEqual(op['OIM_ResourceGroup'], 'AGLT2')
+        self.assertEqual(op['OIM_Resource'], 'AGLT2_CE_2')
+        self.assertEqual(op['OIM_UsageModel'], 'OPPORTUNISTIC')
         return True
 
     def test_fallbacktosite(self):
@@ -104,12 +105,12 @@ class GRACCDictTests(BasicOIMTopologyTests):
         Group"""
         fail_probe = self.topology.generate_dict_for_gracc(
             self.testdoc_fail_probe)
-        self.assertEqual(fail_probe['OIMFacility'], 'University of Michigan')
-        self.assertEqual(fail_probe['OIMSite'], 'AGLT2')
-        self.assertEqual(fail_probe['OIMResourceGroup'], 'AGLT2')
-        self.assertNotEqual(fail_probe['OIMResource'],'AGLT2_CE_2')
-        self.assertEqual(fail_probe['OIMResource'],'AGLT2_SL6')
-        self.assertEqual(fail_probe['OIMUsageModel'], 'OPPORTUNISTIC')
+        self.assertEqual(fail_probe['OIM_Facility'], 'University of Michigan')
+        self.assertEqual(fail_probe['OIM_Site'], 'AGLT2')
+        self.assertEqual(fail_probe['OIM_ResourceGroup'], 'AGLT2')
+        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
+        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
         return True
     
     def test_fail(self):
@@ -123,12 +124,12 @@ class GRACCDictTests(BasicOIMTopologyTests):
         """No Probe name in gracc doc at all"""
         fail_probe = self.topology.generate_dict_for_gracc(
             self.testdoc_noprobe)
-        self.assertEqual(fail_probe['OIMFacility'], 'University of Michigan')
-        self.assertEqual(fail_probe['OIMSite'], 'AGLT2')
-        self.assertEqual(fail_probe['OIMResourceGroup'], 'AGLT2')
-        self.assertNotEqual(fail_probe['OIMResource'],'AGLT2_CE_2')
-        self.assertEqual(fail_probe['OIMResource'],'AGLT2_SL6')
-        self.assertEqual(fail_probe['OIMUsageModel'], 'OPPORTUNISTIC')
+        self.assertEqual(fail_probe['OIM_Facility'], 'University of Michigan')
+        self.assertEqual(fail_probe['OIM_Site'], 'AGLT2')
+        self.assertEqual(fail_probe['OIM_ResourceGroup'], 'AGLT2')
+        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
+        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
         return True
 
     def test_noprobe_nosite(self):
@@ -140,28 +141,28 @@ class GRACCDictTests(BasicOIMTopologyTests):
     def test_no_vo(self):
         fail_probe = self.topology.generate_dict_for_gracc(
             self.testdoc_no_vo)
-        self.assertEqual(fail_probe['OIMUsageModel'], 'UNKNOWN')
+        self.assertEqual(fail_probe['OIM_UsageModel'], 'UNKNOWN')
         return True
 
     def test_payload(self):
         """Payload record - should be successful match for BNL_ATLAS_1
         resource"""
         pg = self.topology.generate_dict_for_gracc(self.testdoc_payload_suc)
-        self.assertEqual(pg['OIMFacility'], 'Brookhaven National Laboratory')
-        self.assertEqual(pg['OIMSite'], 'Brookhaven ATLAS Tier1')
-        self.assertEqual(pg['OIMResourceGroup'], 'BNL-ATLAS')
-        self.assertEqual(pg['OIMResource'], 'BNL_ATLAS_1')
-        self.assertEqual(pg['OIMUsageModel'], 'DEDICATED')
+        self.assertEqual(pg['OIM_Facility'], 'Brookhaven National Laboratory')
+        self.assertEqual(pg['OIM_Site'], 'Brookhaven ATLAS Tier1')
+        self.assertEqual(pg['OIM_ResourceGroup'], 'BNL-ATLAS')
+        self.assertEqual(pg['OIM_Resource'], 'BNL_ATLAS_1')
+        self.assertEqual(pg['OIM_UsageModel'], 'DEDICATED')
         return True
 
     def test_payload_site(self):
         """Payload record - should be successful match for UConn-OSG Site"""
         st = self.topology.generate_dict_for_gracc(self.testdoc_payload_site)
-        self.assertEqual(st['OIMFacility'], 'University of Connecticut')
-        self.assertEqual(st['OIMSite'], 'UConn-OSG')
-        rg = st.get('OIMResourceGroup')
-        res = st.get('OIMResource')
-        um = st.get('OIMUsageModel')
+        self.assertEqual(st['OIM_Facility'], 'University of Connecticut')
+        self.assertEqual(st['OIM_Site'], 'UConn-OSG')
+        rg = st.get('OIM_ResourceGroup')
+        res = st.get('OIM_Resource')
+        um = st.get('OIM_UsageModel')
         self.assertFalse(rg)
         self.assertFalse(res)
         self.assertFalse(um)
@@ -171,11 +172,11 @@ class GRACCDictTests(BasicOIMTopologyTests):
         """Payload record - should be successful match for Hyak Resource
         Group"""
         rg = self.topology.generate_dict_for_gracc(self.testdoc_payload_rg)
-        self.assertEqual(rg['OIMFacility'], 'University of Washington')
-        self.assertEqual(rg['OIMSite'], 'UW-IT')
-        self.assertEqual(rg['OIMResourceGroup'], 'Hyak')
-        res = rg.get('OIMResource')
-        um = rg.get('OIMUsageModel')
+        self.assertEqual(rg['OIM_Facility'], 'University of Washington')
+        self.assertEqual(rg['OIM_Site'], 'UW-IT')
+        self.assertEqual(rg['OIM_ResourceGroup'], 'Hyak')
+        res = rg.get('OIM_Resource')
+        um = rg.get('OIM_UsageModel')
         self.assertFalse(res)
         self.assertFalse(um)
         return True
