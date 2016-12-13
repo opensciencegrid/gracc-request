@@ -89,15 +89,15 @@ class OIMTopology(object):
 
         # This could (and probably should) be moved to a config file
         rg_pathdictionary = {
-            'Facility': './Facility/Name',
-            'Site': './Site/Name',
-            'ResourceGroup': './GroupName'}
+            'OIMFacility': './Facility/Name',
+            'OIMSite': './Site/Name',
+            'OIMResourceGroup': './GroupName'}
 
         r_pathdictionary = {
-            'Resource': './Name',
-            'ID': './ID',
-            'FQDN': './FQDN',
-            'WLCGAccountingName': './WLCGInformation/AccountingName'
+            'OIMResource': './Name',
+            'OIMID': './ID',
+            'OIMFQDN': './FQDN',
+            'OIMWLCGAccountingName': './WLCGInformation/AccountingName'
         }
 
         returndict = {}
@@ -196,7 +196,7 @@ class OIMTopology(object):
             return {}
 
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'FQDN' in resourcedict and resourcedict['FQDN'] == fqdn:
+            if 'OIMFQDN' in resourcedict and resourcedict['OIMFQDN'] == fqdn:
                 return resourcedict
         else:
             return {}
@@ -215,9 +215,9 @@ class OIMTopology(object):
 
         returndict = {}
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'Site' in resourcedict and resourcedict['Site'] == sitename:
-                returndict['Site'] = resourcedict['Site']
-                returndict['Facility'] = resourcedict['Facility']
+            if 'OIMSite' in resourcedict and resourcedict['OIMSite'] == sitename:
+                returndict['OIMSite'] = resourcedict['OIMSite']
+                returndict['OIMFacility'] = resourcedict['OIMFacility']
         return returndict
 
     def get_information_by_resourcegroup(self, rgname):
@@ -234,11 +234,11 @@ class OIMTopology(object):
 
         returndict = {}
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'ResourceGroup' in resourcedict and \
-                            resourcedict['ResourceGroup'] == rgname:
-                returndict['Site'] = resourcedict['Site']
-                returndict['Facility'] = resourcedict['Facility']
-                returndict['ResourceGroup'] = resourcedict['ResourceGroup']
+            if 'OIMResourceGroup' in resourcedict and \
+                            resourcedict['OIMResourceGroup'] == rgname:
+                returndict['OIMSite'] = resourcedict['OIMSite']
+                returndict['OIMFacility'] = resourcedict['OIMFacility']
+                returndict['OIMResourceGroup'] = resourcedict['OIMResourceGroup']
         return returndict
 
     def check_hostdescription(self, doc):
@@ -338,7 +338,7 @@ class OIMTopology(object):
         returndict = rawdict.copy()
 
         if 'VOOwnership' in returndict:
-            returndict['UsageModel'] = self.check_VO(doc, rawdict)
+            returndict['OIMUsageModel'] = self.check_VO(doc, rawdict)
 
         keys_to_delete = ['Contacts', 'VOOwnership', 'ID']
         # Delete unnecessary keys
