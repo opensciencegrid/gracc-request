@@ -107,7 +107,6 @@ class OIMTopology(object):
         resource_group_elt = self.root.find(resource_grouppath)
         for key, path in rg_pathdictionary.iteritems():
             try:
-
                 returndict[key] = resource_group_elt.find(path).text
             except AttributeError:
                 # Skip this.  It means there's no information for this key
@@ -118,7 +117,10 @@ class OIMTopology(object):
             './Resources/Resource/[Name="{0}"]'.format(resourcename))
         for key, path in r_pathdictionary.iteritems():
             try:
-                returndict[key] = resource_elt.find(path).text
+                if key == 'OIM_WLCGAPELNormalFactor':
+                    returndict[key] = float(resource_elt.find(path).text)
+                else:
+                    returndict[key] = resource_elt.find(path).text
             except AttributeError:
                 # Skip this.  It means there's no information for this key
                 pass
