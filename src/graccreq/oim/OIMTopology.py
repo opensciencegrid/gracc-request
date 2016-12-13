@@ -89,15 +89,16 @@ class OIMTopology(object):
 
         # This could (and probably should) be moved to a config file
         rg_pathdictionary = {
-            'OIMFacility': './Facility/Name',
-            'OIMSite': './Site/Name',
-            'OIMResourceGroup': './GroupName'}
+            'OIM_Facility': './Facility/Name',
+            'OIM_Site': './Site/Name',
+            'OIM_ResourceGroup': './GroupName'}
 
         r_pathdictionary = {
-            'OIMResource': './Name',
-            'OIMID': './ID',
-            'OIMFQDN': './FQDN',
-            'OIMWLCGAccountingName': './WLCGInformation/AccountingName'
+            'OIM_Resource': './Name',
+            'OIM_ID': './ID',
+            'OIM_FQDN': './FQDN',
+            'OIM_WLCGAccountingName': './WLCGInformation/AccountingName',
+            'OIM_WLCGAPELNormalFactor': './WLCGInformation/APELNormalFactor',
         }
 
         returndict = {}
