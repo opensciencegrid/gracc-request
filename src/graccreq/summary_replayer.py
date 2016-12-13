@@ -36,11 +36,13 @@ class SummaryReplayer(replayer.Replayer):
         self.topology = OIMTopology.OIMTopology()
         
     def run(self):
+        
         if self._config['General']['Profile']:
             logging.debug("Staring profiler")
             import cProfile
             pr = cProfile.Profile()
             pr.enable()
+            
         logging.debug("Beggining run of SummaryReplayer")
         self.createConnection()
         
@@ -73,6 +75,9 @@ class SummaryReplayer(replayer.Replayer):
             sortby = 'cumulative'
             ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
             ps.print_stats()
+            f = open('/tmp/profile.txt', 'a')
+            f.write(s.getvalue())
+            f.close()
             print s.getvalue()
 
 

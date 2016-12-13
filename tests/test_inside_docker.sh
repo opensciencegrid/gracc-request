@@ -66,5 +66,7 @@ systemctl stop graccreq.service
 sleep 20
 journalctl -u graccreq.service --no-pager -n 100
 
+cat /tmp/profile.txt
+
 exit $test_exit
 
