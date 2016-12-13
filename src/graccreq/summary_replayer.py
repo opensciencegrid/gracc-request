@@ -11,6 +11,7 @@ import dateutil
 import copy
 import datetime
 from graccreq.oim import projects, OIMTopology
+import StringIO
 from graccreq.correct import Corrections
 
 
@@ -46,6 +47,13 @@ class SummaryReplayer(replayer.Replayer):
                                                 dest_field=c['dest_field']))
         
     def run(self):
+        
+        if self._config['General']['Profile']:
+            logging.debug("Staring profiler")
+            import cProfile
+            pr = cProfile.Profile()
+            pr.enable()
+            
         logging.debug("Beggining run of SummaryReplayer")
         self.createConnection()
         
@@ -71,6 +79,19 @@ class SummaryReplayer(replayer.Replayer):
         self.sendControlMessage({'status': 'ok', 'stage': 'finished'})
         
         self.conn.close()
+        
+        if self._config['General']['Profile']:
+            logging.debug("Stopping profiler")
+            import pstats
+            pr.disable()
+            s = StringIO.StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+            ps.print_stats()
+            f = open('/tmp/profile.txt', 'a')
+            f.write(s.getvalue())
+            f.close()
+            print s.getvalue()
 
 
     def on_return(self, channel, method, properties, body):
