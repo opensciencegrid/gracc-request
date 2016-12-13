@@ -67,6 +67,7 @@ class SummaryReplayer(replayer.Replayer):
         
         if self._config['General']['Profile']:
             logging.debug("Stopping profiler")
+            import pstats
             pr.disable()
             s = StringIO.StringIO()
             sortby = 'cumulative'
