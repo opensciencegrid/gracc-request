@@ -1,3 +1,6 @@
+[General]
+Profile = true
+
 [AMQP]
 
 # Host information

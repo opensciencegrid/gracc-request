@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        2.3
+Version:        2.4
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -71,6 +71,10 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Tue Dec 13 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.4-1
+- Add profiling to summarizer
+- Fix bug with Processors = 0
+
 * Fri Oct 7 2016 Kevin Retzke <kretzke@fnal.gov> 2.3-1
 - Add name corrections
 

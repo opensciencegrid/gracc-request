@@ -40,6 +40,21 @@ class TestClient(unittest.TestCase):
         client.query(start_time, end_time, 'summary', getMessage)
         self.assertGreater(status['num_messages'], 1)
         
+    def test_client_long_range(self):
+        # Set the timerange
+        start_time = datetime(2016, 6, 1)
+        end_time = start_time + timedelta(days=7)
+        print start_time
+        print end_time
+        status = {'num_messages': 0}
+
+        def getMessage(msg):
+            status['num_messages'] += 1
+
+        client = Client("gracc.osg.requests", "gracc.osg.requests")
+        client.query(start_time, end_time, 'summary', getMessage)
+        self.assertGreater(status['num_messages'], 1)
+        
     def test_raw(self):
         # Set the timerange
         start_time = datetime(2016, 6, 1)
