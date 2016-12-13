@@ -197,7 +197,7 @@ class OIMTopology(object):
             return {}
 
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIMFQDN' in resourcedict and resourcedict['OIMFQDN'] == fqdn:
+            if 'OIM_FQDN' in resourcedict and resourcedict['OIM_FQDN'] == fqdn:
                 return resourcedict
         else:
             return {}
@@ -216,9 +216,9 @@ class OIMTopology(object):
 
         returndict = {}
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIMSite' in resourcedict and resourcedict['OIMSite'] == sitename:
-                returndict['OIMSite'] = resourcedict['OIMSite']
-                returndict['OIMFacility'] = resourcedict['OIMFacility']
+            if 'OIM_Site' in resourcedict and resourcedict['OIM_Site'] == sitename:
+                returndict['OIM_Site'] = resourcedict['OIM_Site']
+                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
         return returndict
 
     def get_information_by_resourcegroup(self, rgname):
@@ -235,11 +235,11 @@ class OIMTopology(object):
 
         returndict = {}
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIMResourceGroup' in resourcedict and \
-                            resourcedict['OIMResourceGroup'] == rgname:
-                returndict['OIMSite'] = resourcedict['OIMSite']
-                returndict['OIMFacility'] = resourcedict['OIMFacility']
-                returndict['OIMResourceGroup'] = resourcedict['OIMResourceGroup']
+            if 'OIM_ResourceGroup' in resourcedict and \
+                            resourcedict['OIM_ResourceGroup'] == rgname:
+                returndict['OIM_Site'] = resourcedict['OIM_Site']
+                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
+                returndict['OIM_ResourceGroup'] = resourcedict['OIM_ResourceGroup']
         return returndict
 
     def check_hostdescription(self, doc):
@@ -339,7 +339,7 @@ class OIMTopology(object):
         returndict = rawdict.copy()
 
         if 'VOOwnership' in returndict:
-            returndict['OIMUsageModel'] = self.check_VO(doc, rawdict)
+            returndict['OIM_UsageModel'] = self.check_VO(doc, rawdict)
 
         keys_to_delete = ['Contacts', 'VOOwnership', 'ID']
         # Delete unnecessary keys
