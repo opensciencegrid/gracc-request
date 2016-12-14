@@ -48,7 +48,7 @@ class SummaryReplayer(replayer.Replayer):
         
     def run(self):
         
-        if self._config['General']['Profile']:
+        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
             logging.debug("Staring profiler")
             import cProfile
             pr = cProfile.Profile()
@@ -80,7 +80,7 @@ class SummaryReplayer(replayer.Replayer):
         
         self.conn.close()
         
-        if self._config['General']['Profile']:
+        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
             logging.debug("Stopping profiler")
             import pstats
             pr.disable()
