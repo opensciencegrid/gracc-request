@@ -33,10 +33,13 @@ class OIMProjects(object):
             for ele in list(element):
                 if ele.tag not in self.wanted_attributes:
                     continue
-                new_dict[ele.tag] = ele.text
-            if 'Name' in new_dict:
-                self.dict_name[new_dict['Name']] = new_dict
-                del new_dict['Name']
+                newtag = 'OIM_{0}'.format(ele.tag)
+                # Add OIM to ele.tag string
+                new_dict[newtag] = ele.text
+            # Here, make 'Name' 'OIM_Name'
+            if 'OIM_Name' in new_dict:
+                self.dict_name[new_dict['OIM_Name']] = new_dict
+                del new_dict['OIM_Name']
         
     def parseDoc(self, doc):
         """
