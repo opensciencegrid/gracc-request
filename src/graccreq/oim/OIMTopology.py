@@ -7,7 +7,7 @@ import os.path
 import pickle
 
 SEC_IN_DAY = 86400
-cachefile = 'resourcedict.pickle'
+cachefile = '/tmp/resourcedict.pickle'
 curtime = int(time.time())
 
 
