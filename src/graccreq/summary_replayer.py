@@ -11,6 +11,7 @@ import dateutil
 import copy
 import datetime
 from graccreq.oim import projects, OIMTopology
+import StringIO
 from graccreq.correct import Corrections
 
 
@@ -46,6 +47,13 @@ class SummaryReplayer(replayer.Replayer):
                                                 dest_field=c['dest_field']))
         
     def run(self):
+        
+        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
+            logging.debug("Staring profiler")
+            import cProfile
+            pr = cProfile.Profile()
+            pr.enable()
+            
         logging.debug("Beggining run of SummaryReplayer")
         self.createConnection()
         
@@ -71,6 +79,19 @@ class SummaryReplayer(replayer.Replayer):
         self.sendControlMessage({'status': 'ok', 'stage': 'finished'})
         
         self.conn.close()
+        
+        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
+            logging.debug("Stopping profiler")
+            import pstats
+            pr.disable()
+            s = StringIO.StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+            ps.print_stats()
+            f = open('/tmp/profile.txt', 'a')
+            f.write(s.getvalue())
+            f.close()
+            print s.getvalue()
 
 
     def on_return(self, channel, method, properties, body):
@@ -100,7 +121,7 @@ class SummaryReplayer(replayer.Replayer):
         s = s.query('bool', must=[Q('match', _type=self._config['ElasticSearch']['raw_type'])])
         
         # Fill in the unique terms and metrics
-        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
+        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
         metrics = ["WallDuration", "CpuDuration_user", "CpuDuration_system", "CoreHours"]
 
         # If the terms are missing, set as "N/A"

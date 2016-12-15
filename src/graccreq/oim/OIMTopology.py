@@ -89,15 +89,16 @@ class OIMTopology(object):
 
         # This could (and probably should) be moved to a config file
         rg_pathdictionary = {
-            'Facility': './Facility/Name',
-            'Site': './Site/Name',
-            'ResourceGroup': './GroupName'}
+            'OIM_Facility': './Facility/Name',
+            'OIM_Site': './Site/Name',
+            'OIM_ResourceGroup': './GroupName'}
 
         r_pathdictionary = {
-            'Resource': './Name',
-            'ID': './ID',
-            'FQDN': './FQDN',
-            'WLCGAccountingName': './WLCGInformation/AccountingName'
+            'OIM_Resource': './Name',
+            'OIM_ID': './ID',
+            'OIM_FQDN': './FQDN',
+            'OIM_WLCGAccountingName': './WLCGInformation/AccountingName',
+            'OIM_WLCGAPELNormalFactor': './WLCGInformation/APELNormalFactor',
         }
 
         returndict = {}
@@ -106,7 +107,6 @@ class OIMTopology(object):
         resource_group_elt = self.root.find(resource_grouppath)
         for key, path in rg_pathdictionary.iteritems():
             try:
-
                 returndict[key] = resource_group_elt.find(path).text
             except AttributeError:
                 # Skip this.  It means there's no information for this key
@@ -117,7 +117,10 @@ class OIMTopology(object):
             './Resources/Resource/[Name="{0}"]'.format(resourcename))
         for key, path in r_pathdictionary.iteritems():
             try:
-                returndict[key] = resource_elt.find(path).text
+                if key == 'OIM_WLCGAPELNormalFactor':
+                    returndict[key] = float(resource_elt.find(path).text)
+                else:
+                    returndict[key] = resource_elt.find(path).text
             except AttributeError:
                 # Skip this.  It means there's no information for this key
                 pass
@@ -196,7 +199,7 @@ class OIMTopology(object):
             return {}
 
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'FQDN' in resourcedict and resourcedict['FQDN'] == fqdn:
+            if 'OIM_FQDN' in resourcedict and resourcedict['OIM_FQDN'] == fqdn:
                 return resourcedict
         else:
             return {}
@@ -215,9 +218,9 @@ class OIMTopology(object):
 
         returndict = {}
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'Site' in resourcedict and resourcedict['Site'] == sitename:
-                returndict['Site'] = resourcedict['Site']
-                returndict['Facility'] = resourcedict['Facility']
+            if 'OIM_Site' in resourcedict and resourcedict['OIM_Site'] == sitename:
+                returndict['OIM_Site'] = resourcedict['OIM_Site']
+                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
         return returndict
 
     def get_information_by_resourcegroup(self, rgname):
@@ -234,11 +237,11 @@ class OIMTopology(object):
 
         returndict = {}
         for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'ResourceGroup' in resourcedict and \
-                            resourcedict['ResourceGroup'] == rgname:
-                returndict['Site'] = resourcedict['Site']
-                returndict['Facility'] = resourcedict['Facility']
-                returndict['ResourceGroup'] = resourcedict['ResourceGroup']
+            if 'OIM_ResourceGroup' in resourcedict and \
+                            resourcedict['OIM_ResourceGroup'] == rgname:
+                returndict['OIM_Site'] = resourcedict['OIM_Site']
+                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
+                returndict['OIM_ResourceGroup'] = resourcedict['OIM_ResourceGroup']
         return returndict
 
     def check_hostdescription(self, doc):
@@ -338,7 +341,7 @@ class OIMTopology(object):
         returndict = rawdict.copy()
 
         if 'VOOwnership' in returndict:
-            returndict['UsageModel'] = self.check_VO(doc, rawdict)
+            returndict['OIM_UsageModel'] = self.check_VO(doc, rawdict)
 
         keys_to_delete = ['Contacts', 'VOOwnership', 'ID']
         # Delete unnecessary keys
