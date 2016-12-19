@@ -129,7 +129,7 @@ class SummaryReplayer(replayer.Replayer):
         new_unique_terms = unique_terms[1:]
 
         for term in new_unique_terms:
-        	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=0)
+        	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=sys.maxint)
 
         for metric in metrics:
         	curBucket.metric(metric, 'sum', field=metric)
