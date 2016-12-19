@@ -71,7 +71,7 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
-* Wed Dec 14 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.6-1
+* Mon Dec 19 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.6-1
 - Fix size bug with new ES5.  Set it to max signed int
 
 * Wed Dec 14 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.5-1
