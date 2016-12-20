@@ -16,26 +16,38 @@ from graccreq.correct import Corrections
 
 
 def SummaryReplayerFactory(msg, parameters, config):
-    # Create the raw replayer class
-    #print "Creating raw replayer"
+    
+    # Start profiling
+    if 'General' in config and 'Profile' in config['General'] and config['General']['Profile']:
+        logging.debug("Staring profiler")
+        import cProfile
+        pr = cProfile.Profile()
+        pr.enable()
+        
     try:
         replayer = SummaryReplayer(msg, parameters, config)
         replayer.run()
     except Exception, e:
         logging.error(traceback.format_exc())
+    
+    if 'General' in config and 'Profile' in config['General'] and config['General']['Profile']:
+        logging.debug("Stopping profiler")
+        import pstats
+        pr.disable()
+        s = StringIO.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        f = open('/tmp/profile.txt', 'a')
+        f.write(s.getvalue())
+        f.close()
+        print s.getvalue()
         
         
 class SummaryReplayer(replayer.Replayer):
     def __init__(self, message, parameters, config):
         super(SummaryReplayer, self).__init__(message, parameters)
         self._config = config
-        
-        # Start profiling
-        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
-            logging.debug("Staring profiler")
-            import cProfile
-            pr = cProfile.Profile()
-            pr.enable()
         
         # Initialize the project information
         self.project = projects.OIMProjects()
@@ -55,8 +67,6 @@ class SummaryReplayer(replayer.Replayer):
         
     def run(self):
         
-        
-            
         logging.debug("Beggining run of SummaryReplayer")
         self.createConnection()
         
@@ -83,18 +93,6 @@ class SummaryReplayer(replayer.Replayer):
         
         self.conn.close()
         
-        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
-            logging.debug("Stopping profiler")
-            import pstats
-            pr.disable()
-            s = StringIO.StringIO()
-            sortby = 'cumulative'
-            ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-            ps.print_stats()
-            f = open('/tmp/profile.txt', 'a')
-            f.write(s.getvalue())
-            f.close()
-            print s.getvalue()
 
 
     def on_return(self, channel, method, properties, body):
