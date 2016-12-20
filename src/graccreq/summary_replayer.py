@@ -30,6 +30,13 @@ class SummaryReplayer(replayer.Replayer):
         super(SummaryReplayer, self).__init__(message, parameters)
         self._config = config
         
+        # Start profiling
+        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
+            logging.debug("Staring profiler")
+            import cProfile
+            pr = cProfile.Profile()
+            pr.enable()
+        
         # Initialize the project information
         self.project = projects.OIMProjects()
 
@@ -48,11 +55,7 @@ class SummaryReplayer(replayer.Replayer):
         
     def run(self):
         
-        if 'General' in self._config and 'Profile' in self._config['General'] and self._config['General']['Profile']:
-            logging.debug("Staring profiler")
-            import cProfile
-            pr = cProfile.Profile()
-            pr.enable()
+        
             
         logging.debug("Beggining run of SummaryReplayer")
         self.createConnection()
