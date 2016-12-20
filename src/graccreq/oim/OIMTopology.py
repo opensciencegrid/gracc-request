@@ -5,10 +5,12 @@ import re
 import time
 import os.path
 import pickle
+import filelock
 
 SEC_IN_DAY = 86400
 cachefile = '/tmp/resourcedict.pickle'
 curtime = int(time.time())
+lock = filelock.FileLock('/tmp/lockfile_OIM_cache')
 
 
 class OIMTopology(object):
@@ -20,7 +22,10 @@ class OIMTopology(object):
         self.probe_exp = re.compile('.+:(.+)')
         self.have_info = False
 
-        self.have_info = self.read_from_cache()
+        with lock:
+            assert lock.is_locked
+            self.have_info = self.read_from_cache()
+        assert not lock.is_locked
 
         if not self.have_info:
             self.xml_file = self.get_file_from_OIM()
@@ -28,7 +33,10 @@ class OIMTopology(object):
                 self.parse()
                 if self.resourcedict:
                     self.have_info = True
-                    self.write_to_cache()
+                    with lock:
+                        assert lock.is_locked
+                        self.write_to_cache()
+                    assert not lock.is_locked
 
     def read_from_cache(self):
         if os.path.exists(cachefile) \
