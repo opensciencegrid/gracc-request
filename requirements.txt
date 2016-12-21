@@ -6,4 +6,3 @@ six
 toml
 urllib3
 wsgiref
-filelock
