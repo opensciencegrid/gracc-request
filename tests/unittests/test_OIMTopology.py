@@ -19,6 +19,7 @@ class BasicOIMTopologyTests(unittest.TestCase):
         self.assertEqual(testdict['OIM_Site'], 'FermiGrid')
         self.assertEqual(testdict['OIM_ResourceGroup'], 'FNAL_FIFE_SUBMIT')
         self.assertEqual(testdict['OIM_Resource'],'FIFE_SUBMIT_1')
+        self.assertEqual(testdict['OIM_Match'], 'FQDN')
         return True
 
     def test_resource(self):
@@ -29,6 +30,7 @@ class BasicOIMTopologyTests(unittest.TestCase):
         self.assertEqual(testdict['OIM_ResourceGroup'], 'AGLT2')
         self.assertEqual(testdict['OIM_Resource'],'AGLT2_SL6')
         self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.16)
+        self.assertEqual(testdict['OIM_Match'], 'Resource')
         return True
 
     @classmethod
@@ -105,6 +107,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(ded['OIM_ResourceGroup'], 'AGLT2')
         self.assertEqual(ded['OIM_Resource'],'AGLT2_CE_2')
         self.assertEqual(ded['OIM_UsageModel'], 'DEDICATED')
+        self.assertEqual(ded['OIM_Match'], 'ProbeName-FQDN')
         return True
 
     def test_opportunistic(self):
@@ -116,6 +119,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(op['OIM_ResourceGroup'], 'AGLT2')
         self.assertEqual(op['OIM_Resource'], 'AGLT2_CE_2')
         self.assertEqual(op['OIM_UsageModel'], 'OPPORTUNISTIC')
+        self.assertEqual(op['OIM_Match'], 'ProbeName-FQDN')
         return True
 
     def test_fallbacktosite(self):
@@ -129,6 +133,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
         self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
         self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
+        self.assertEqual(fail_probe['OIM_Match'], 'SiteName-Resource')
         return True
     
     def test_fail(self):
@@ -148,6 +153,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
         self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
         self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
+        self.assertEqual(fail_probe['OIM_Match'], 'SiteName-Resource')
         return True
 
     def test_noprobe_nosite(self):
@@ -171,6 +177,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(pg['OIM_ResourceGroup'], 'BNL-ATLAS')
         self.assertEqual(pg['OIM_Resource'], 'BNL_ATLAS_1')
         self.assertEqual(pg['OIM_UsageModel'], 'DEDICATED')
+        self.assertEqual(pg['OIM_Match'], 'Host_description-Resource')
         return True
 
     def test_payload_site(self):
@@ -184,6 +191,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertFalse(rg)
         self.assertFalse(res)
         self.assertFalse(um)
+        self.assertEqual(st['OIM_Match'],'Host_description-Site')
         return True
 
     def test_payload_rg(self):
@@ -197,6 +205,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         um = rg.get('OIM_UsageModel')
         self.assertFalse(res)
         self.assertFalse(um)
+        self.assertEqual(rg['OIM_Match'], 'Host_description-ResourceGroup')
         return True
     
     def test_payload_fail(self):

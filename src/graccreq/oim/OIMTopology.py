@@ -236,12 +236,12 @@ class OIMTopology(object):
 
     @staticmethod
     def add_matched_to(indict, level):
-        indict["OIM_Match"] = level
+        indict['OIM_Match'] = level
         return indict
 
     @staticmethod
     def add_matched_from(indict, level):
-        indict["OIM_Match"] = '{0}-{1}'.format(level, indict["OIM_Match"])
+        indict['OIM_Match'] = '{0}-{1}'.format(level, indict['OIM_Match'])
         return indict
 
     def get_information_by_resource(self, resourcename):
@@ -257,7 +257,6 @@ class OIMTopology(object):
             return {}
         
         if resourcename in self.resourcedict:
-            # return self.resourcedict[resourcename]
             return self.add_matched_to(self.resourcedict[resourcename],
                                        'Resource')
         else:
@@ -277,7 +276,6 @@ class OIMTopology(object):
         for resourcename, rdict in self.resourcedict.iteritems():
             if 'OIM_FQDN' in rdict and rdict['OIM_FQDN'] == fqdn:
                 return self.add_matched_to(rdict, 'FQDN')
-                # return resourcedict
         else:
             return {}
 
@@ -298,7 +296,10 @@ class OIMTopology(object):
             if 'OIM_Site' in rdict and rdict['OIM_Site'] == sitename:
                 returndict['OIM_Site'] = rdict['OIM_Site']
                 returndict['OIM_Facility'] = rdict['OIM_Facility']
-        return self.add_matched_to(returndict, 'Site')
+        if returndict:
+            return self.add_matched_to(returndict, 'Site')
+        else:
+            return {}
 
     def get_information_by_resourcegroup(self, rgname):
         """Gets the relevant information from the parsed OIM XML file based on
@@ -319,7 +320,10 @@ class OIMTopology(object):
                 returndict['OIM_Site'] = rdict['OIM_Site']
                 returndict['OIM_Facility'] = rdict['OIM_Facility']
                 returndict['OIM_ResourceGroup'] = rdict['OIM_ResourceGroup']
-        return self.add_matched_to(returndict, 'Resource Group')
+        if returndict:
+            return self.add_matched_to(returndict, 'ResourceGroup')
+        else:
+            return {}
 
     def check_hostdescription(self, doc):
         """Matches host description to resource name, site name, or resource
@@ -341,9 +345,11 @@ class OIMTopology(object):
         if not returndict:
             returndict = \
                 self.get_information_by_resourcegroup(doc['Host_description'])
+
         if returndict:
-            returndict = self.add_matched_from(returndict, 'Host_description')
-        return returndict
+            return self.add_matched_from(returndict, 'Host_description')
+        else:
+            return {}
 
     def check_probe(self, doc):
         """Gets information from OIM based on the probe name passed in
@@ -358,7 +364,8 @@ class OIMTopology(object):
         if probe_fqdn_check:
             probe_fqdn = probe_fqdn_check.group(1)
             returndict = self.get_information_by_fqdn(probe_fqdn)
-            return self.add_matched_from(returndict, 'ProbeName')
+            if returndict:
+                return self.add_matched_from(returndict, 'ProbeName')
         else:
             return {}
 
@@ -372,7 +379,10 @@ class OIMTopology(object):
          dictionary if a match was not found
         """
         returndict = self.get_information_by_resource(doc['SiteName'])
-        return self.add_matched_from(returndict, 'SiteName')
+        if returndict:
+            return self.add_matched_from(returndict, 'SiteName')
+        else:
+            return {}
 
     @staticmethod
     def check_VO(doc, rdict):
