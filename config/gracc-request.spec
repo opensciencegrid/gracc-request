@@ -19,7 +19,7 @@ Requires:       python2-pika
 Requires:       python-elasticsearch-dsl
 Requires:       python-dateutil
 Requires:       python-toml
-Requires:       python-filelock
+Requires:       python2-filelock
 Requires(pre):  shadow-utils
 
 %description
