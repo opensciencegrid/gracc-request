@@ -23,8 +23,10 @@ class OIMTopology(object):
         self.have_info = False
 
         with lock:
+            print "Read lock"
             assert lock.is_locked
             self.have_info = self.read_from_cache()
+        print "Read lock released"
         assert not lock.is_locked
 
         if not self.have_info:
@@ -34,8 +36,10 @@ class OIMTopology(object):
                 if self.resourcedict:
                     self.have_info = True
                     with lock:
+                        print "Write lock"
                         assert lock.is_locked
                         self.write_to_cache()
+                    print "Write lock released"
                     assert not lock.is_locked
 
     def read_from_cache(self):
