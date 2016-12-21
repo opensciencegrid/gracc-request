@@ -164,27 +164,17 @@ class OIMTopology(object):
 
         # Resource group-specific info
         resource_group_elt = self.root.find(resource_grouppath)
-        # for key, path in rg_pathdictionary.iteritems():
-        #     try:
-        #         returndict[key] = resource_group_elt.find(path).text
-        #     except AttributeError:
-        #         # Skip this.  It means there's no information for this key
-        #         pass
-
         # Resource-specific info
         resource_elt = resource_group_elt.find(
             './Resources/Resource/[Name="{0}"]'.format(resourcename))
-        # for key, path in r_pathdictionary.iteritems():
-        #     try:
-        #         if key == 'OIM_WLCGAPELNormalFactor':
-        #             returndict[key] = float(resource_elt.find(path).text)
-        #         else:
-        #             returndict[key] = resource_elt.find(path).text
-        #     except AttributeError:
-        #         # Skip this.  It means there's no information for this key
-        #         pass
 
-        eltdict = {"ResourceGroup": {"Element": resource_group_elt, "Dict": rg_pathdictionary}, "Resource": {"Element": resource_elt, "Dict": r_pathdictionary}}
+        # Dictionary of Elements/Dict for Resource and Resource group.  Purely
+        # to allow for easier iteration below
+        eltdict = {"ResourceGroup":
+                       {"Element": resource_group_elt, "Dict": rg_pathdictionary},
+                   "Resource":
+                       {"Element": resource_elt, "Dict": r_pathdictionary}
+                   }
 
         for level, info in eltdict.iteritems():
             for key, path in info["Dict"].iteritems():
@@ -196,7 +186,6 @@ class OIMTopology(object):
                 except AttributeError:
                     # Skip this.  It means there's no information for this key
                     pass
-
 
         # All information that requires a bit more scrubbing
         returndict['VOOwnership'] = \
@@ -326,8 +315,9 @@ class OIMTopology(object):
 
         Returns dictionary of relevant information to append to GRACC record
         """
-        #Match host desc to resource name
+        # Match host desc to resource name
         # if that fails, to site
+        # if that fails, to resource group
         # if that fails, return {}
 
         returndict = self.get_information_by_resource(doc['Host_description'])
@@ -397,22 +387,26 @@ class OIMTopology(object):
             return {}
 
         rawdict = {}
-        if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
-            # Payload records should be matched on host description
-            rawdict = self.check_hostdescription(doc)
-        elif 'ProbeName' in doc:
-            rawdict = self.check_probe(doc)
-            if not rawdict:
-                rawdict = self.check_site_to_resource(doc)
-        elif 'SiteName' in doc:
-            rawdict = self.check_site_to_resource(doc)
 
+        # Payload records should be matched on host description only
+        if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
+            rawdict = self.check_hostdescription(doc)
+
+        # Otherwise, try to match by probe and then site
+        else:
+            if 'ProbeName' in doc:
+                rawdict = self.check_probe(doc)
+
+            if not rawdict and 'SiteName' in doc:
+                rawdict = self.check_site_to_resource(doc)
+
+        # None of the matches were successful
         if not rawdict:
-            # None of the matches were successful
             return {}
 
         returndict = rawdict.copy()
 
+        # Append VO Ownership info
         if 'VOOwnership' in returndict:
             returndict['OIM_UsageModel'] = self.check_VO(doc, rawdict)
 
