@@ -79,7 +79,8 @@ class GRACCDictTests(BasicOIMTopologyTests):
         return True
 
     def test_caching(self):
-        """Test to make sure that we can read from cache"""
+        """Test to make sure that we can read from cache and that lock is
+        released after reading file"""
         testclass = OIMTopology.OIMTopology()
         self.assertTrue(testclass.have_info)
         self.assertFalse(testclass.cachelock.is_locked)
