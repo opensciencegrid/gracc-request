@@ -21,7 +21,8 @@ class OIMTopology(object):
         self.resourcedict = {}
         self.probe_exp = re.compile('.+:(.+)')
         self.have_info = False
-        self.cachelock = filelock.FileLock(lockfile)
+        self.lockfile = lockfile
+        self.cachelock = filelock.FileLock(self.lockfile)
 
         # Lock our cachefile, try to read from it
         with self.cachelock:
@@ -44,9 +45,6 @@ class OIMTopology(object):
                         self.write_to_cache()
                     print "Write lock released"
                     assert not self.cachelock.is_locked
-
-        if os.path.exists(lockfile):
-            os.unlink(lockfile)
 
     def read_from_cache(self):
         """Method to unpickle resourcedict from cache.
