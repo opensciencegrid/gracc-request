@@ -22,7 +22,6 @@ class OIMTopology(object):
         self.probe_exp = re.compile('.+:(.+)')
         self.have_info = False
         self.cachelock = filelock.FileLock(lockfile)
-        self.cachefile = cachefile
 
         # Lock our cachefile, try to read from it
         with self.cachelock:
@@ -46,14 +45,16 @@ class OIMTopology(object):
                     print "Write lock released"
                     assert not self.cachelock.is_locked
 
+        os.unlink(lockfile)
+
     def read_from_cache(self):
         """Method to unpickle resourcedict from cache.
         Returns True on success, False otherwise"""
         # We check that the cachefile exists and is less than 1 day old
-        if os.path.exists(self.cachefile) \
-                and curtime - int(os.path.getctime(self.cachefile)) < SEC_IN_DAY:
+        if os.path.exists(cachefile) \
+                and curtime - int(os.path.getctime(cachefile)) < SEC_IN_DAY:
             try:
-                with open(self.cachefile, 'rb') as cache:
+                with open(cachefile, 'rb') as cache:
                     self.resourcedict = pickle.load(cache)
                 print "Loaded from Cache"
                 return True
@@ -67,7 +68,7 @@ class OIMTopology(object):
         """Method to pickle up the resourcedict into the cachefile.
         Returns True if successful, False if not."""
         try:
-            with open(self.cachefile, 'wb') as cache:
+            with open(cachefile, 'wb') as cache:
                 pickle.dump(self.resourcedict, cache)
             print "Pickled new resource dict to Cache file"
             return True
