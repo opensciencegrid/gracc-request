@@ -45,7 +45,8 @@ class OIMTopology(object):
                     print "Write lock released"
                     assert not self.cachelock.is_locked
 
-        os.unlink(lockfile)
+        if os.path.exists(lockfile):
+            os.unlink(lockfile)
 
     def read_from_cache(self):
         """Method to unpickle resourcedict from cache.
