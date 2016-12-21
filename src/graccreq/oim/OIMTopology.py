@@ -22,6 +22,7 @@ class OIMTopology(object):
         self.probe_exp = re.compile('.+:(.+)')
         self.have_info = False
 
+        # Lock our cachefile, try to read from it
         with lock:
             print "Read lock"
             assert lock.is_locked
@@ -29,6 +30,7 @@ class OIMTopology(object):
         print "Read lock released"
         assert not lock.is_locked
 
+        # If that didn't work, get file from OIM, parse it, write to cache:
         if not self.have_info:
             self.xml_file = self.get_file_from_OIM()
             if self.xml_file:
@@ -43,6 +45,9 @@ class OIMTopology(object):
                     assert not lock.is_locked
 
     def read_from_cache(self):
+        """Method to unpickle resourcedict from cache.
+        Returns True on success, False otherwise"""
+        # We check that the cachefile exists and is less than 1 day old
         if os.path.exists(cachefile) \
                 and curtime - int(os.path.getctime(cachefile)) < SEC_IN_DAY:
             try:
@@ -57,6 +62,8 @@ class OIMTopology(object):
             return False
 
     def write_to_cache(self):
+        """Method to pickle up the resourcedict into the cachefile.
+        Returns True if successful, False if not."""
         try:
             with open(cachefile, 'wb') as cache:
                 pickle.dump(self.resourcedict, cache)
@@ -112,17 +119,17 @@ class OIMTopology(object):
             print "Couldn't parse OIM file"
             self.have_info = False
             return
-        
+
+        # Look in all Resources
         for resourcename_elt in self.root.findall('./ResourceGroup/'
                                                   'Resources/Resource/Name'):
             resourcename = resourcename_elt.text
             if resourcename not in self.resourcedict:
+                # Find the Resource Group Path that has the named resource
                 resource_grouppath = './ResourceGroup/Resources/Resource/' \
                                      '[Name="{0}"]/../..'.format(resourcename)
                 self.resourcedict[resourcename] = \
-                    self.store_resource_information(resource_grouppath,
-                                                  resourcename)
-
+                    self.store_resource_information(resource_grouppath, resourcename)
         return
 
     def store_resource_information(self, resource_grouppath, resourcename):
@@ -138,11 +145,13 @@ class OIMTopology(object):
         """
 
         # This could (and probably should) be moved to a config file
+        # XPaths for searches by Resource Group
         rg_pathdictionary = {
             'OIM_Facility': './Facility/Name',
             'OIM_Site': './Site/Name',
             'OIM_ResourceGroup': './GroupName'}
 
+        # XPaths for searches by Resource
         r_pathdictionary = {
             'OIM_Resource': './Name',
             'OIM_ID': './ID',
@@ -155,25 +164,39 @@ class OIMTopology(object):
 
         # Resource group-specific info
         resource_group_elt = self.root.find(resource_grouppath)
-        for key, path in rg_pathdictionary.iteritems():
-            try:
-                returndict[key] = resource_group_elt.find(path).text
-            except AttributeError:
-                # Skip this.  It means there's no information for this key
-                pass
+        # for key, path in rg_pathdictionary.iteritems():
+        #     try:
+        #         returndict[key] = resource_group_elt.find(path).text
+        #     except AttributeError:
+        #         # Skip this.  It means there's no information for this key
+        #         pass
 
         # Resource-specific info
         resource_elt = resource_group_elt.find(
             './Resources/Resource/[Name="{0}"]'.format(resourcename))
-        for key, path in r_pathdictionary.iteritems():
-            try:
-                if key == 'OIM_WLCGAPELNormalFactor':
-                    returndict[key] = float(resource_elt.find(path).text)
-                else:
-                    returndict[key] = resource_elt.find(path).text
-            except AttributeError:
-                # Skip this.  It means there's no information for this key
-                pass
+        # for key, path in r_pathdictionary.iteritems():
+        #     try:
+        #         if key == 'OIM_WLCGAPELNormalFactor':
+        #             returndict[key] = float(resource_elt.find(path).text)
+        #         else:
+        #             returndict[key] = resource_elt.find(path).text
+        #     except AttributeError:
+        #         # Skip this.  It means there's no information for this key
+        #         pass
+
+        eltdict = {"ResourceGroup": {"Element": resource_group_elt, "Dict": rg_pathdictionary}, "Resource": {"Element": resource_elt, "Dict": r_pathdictionary}}
+
+        for level, info in eltdict.iteritems():
+            for key, path in info["Dict"].iteritems():
+                try:
+                    if key == 'OIM_WLCGAPELNormalFactor':
+                        returndict[key] = float(info["Element"].find(path).text)
+                    else:
+                        returndict[key] = info["Element"].find(path).text
+                except AttributeError:
+                    # Skip this.  It means there's no information for this key
+                    pass
+
 
         # All information that requires a bit more scrubbing
         returndict['VOOwnership'] = \
