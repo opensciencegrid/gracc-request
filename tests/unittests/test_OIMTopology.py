@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import unittest
+import os
 
 from graccreq.oim import OIMTopology
 
@@ -29,6 +30,11 @@ class BasicOIMTopologyTests(unittest.TestCase):
         self.assertEqual(testdict['OIM_Resource'],'AGLT2_SL6')
         self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.16)
         return True
+
+    @classmethod
+    def tearDownClass(cls):
+        if os.path.exists(cls.topology.lockfile):
+            os.unlink(cls.topology.lockfile)
 
 
 class GRACCDictTests(BasicOIMTopologyTests):
@@ -73,9 +79,21 @@ class GRACCDictTests(BasicOIMTopologyTests):
             def __init__(self): pass
         topology2 = Empty()
         topology2.__class__ = self.topology.__class__
-        topology2.xml_file = None  # URL retrieval or parsing didn't work
+        topology2.have_info = False  # URL retrieval or parsing didn't work
         test_dict = topology2.generate_dict_for_gracc(self.testdoc_ded)
         self.assertFalse(test_dict)
+        return True
+
+    def test_caching(self):
+        """Test to make sure that we can read from cache and that lock is
+        released after reading file"""
+        testclass = OIMTopology.OIMTopology()
+        self.assertTrue(testclass.have_info)
+        self.assertFalse(testclass.cachelock.is_locked)
+
+        if os.path.exists(testclass.lockfile):
+            os.unlink(testclass.lockfile)
+
         return True
 
     def test_dedicated(self):
