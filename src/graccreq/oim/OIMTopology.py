@@ -2,6 +2,15 @@ import xml.etree.ElementTree as ET
 from datetime import timedelta, date
 import urllib2
 import re
+import time
+import os.path
+import pickle
+import filelock
+
+SEC_IN_DAY = 86400
+cachefile = '/tmp/resourcedict.pickle'
+lockfile = '/tmp/lockfile_OIM_cache'
+curtime = int(time.time())
 
 
 class OIMTopology(object):
@@ -11,10 +20,59 @@ class OIMTopology(object):
         self.root = None
         self.resourcedict = {}
         self.probe_exp = re.compile('.+:(.+)')
+        self.have_info = False
+        self.cachelock = filelock.FileLock(lockfile)
 
-        self.xml_file = self.get_file_from_OIM()
-        if self.xml_file:
-            self.parse()
+        # Lock our cachefile, try to read from it
+        with self.cachelock:
+            print "Read lock"
+            assert self.cachelock.is_locked
+            self.have_info = self.read_from_cache()
+        print "Read lock released"
+        assert not self.cachelock.is_locked
+
+        # If that didn't work, get file from OIM, parse it, write to cache:
+        if not self.have_info:
+            self.xml_file = self.get_file_from_OIM()
+            if self.xml_file:
+                self.parse()
+                if self.resourcedict:
+                    self.have_info = True
+                    with self.cachelock:
+                        print "Write lock"
+                        assert self.cachelock.is_locked
+                        self.write_to_cache()
+                    print "Write lock released"
+                    assert not self.cachelock.is_locked
+
+    def read_from_cache(self):
+        """Method to unpickle resourcedict from cache.
+        Returns True on success, False otherwise"""
+        # We check that the cachefile exists and is less than 1 day old
+        if os.path.exists(cachefile) \
+                and curtime - int(os.path.getctime(cachefile)) < SEC_IN_DAY:
+            try:
+                with open(cachefile, 'rb') as cache:
+                    self.resourcedict = pickle.load(cache)
+                print "Loaded from Cache"
+                return True
+            except pickle.UnpicklingError:
+                print "Could not unpickle cache file"
+                return False
+        else:
+            return False
+
+    def write_to_cache(self):
+        """Method to pickle up the resourcedict into the cachefile.
+        Returns True if successful, False if not."""
+        try:
+            with open(cachefile, 'wb') as cache:
+                pickle.dump(self.resourcedict, cache)
+            print "Pickled new resource dict to Cache file"
+            return True
+        except pickle.PicklingError:
+            print "Could not pickle new resource dict to Cache file"
+            return False
 
     @staticmethod
     def get_file_from_OIM():
@@ -60,22 +118,22 @@ class OIMTopology(object):
         except Exception as e:
             print e
             print "Couldn't parse OIM file"
-            self.xml_file = None
+            self.have_info = False
             return
-        
+
+        # Look in all Resources
         for resourcename_elt in self.root.findall('./ResourceGroup/'
                                                   'Resources/Resource/Name'):
             resourcename = resourcename_elt.text
             if resourcename not in self.resourcedict:
+                # Find the Resource Group Path that has the named resource
                 resource_grouppath = './ResourceGroup/Resources/Resource/' \
                                      '[Name="{0}"]/../..'.format(resourcename)
                 self.resourcedict[resourcename] = \
-                    self.get_resource_information(resource_grouppath,
-                                                  resourcename)
-
+                    self.store_resource_information(resource_grouppath, resourcename)
         return
 
-    def get_resource_information(self, resource_grouppath, resourcename):
+    def store_resource_information(self, resource_grouppath, resourcename):
         """Uses parsed XML file and finds the relevant information based on the
         dictionary of XPaths.  Searches by resource.
 
@@ -88,11 +146,13 @@ class OIMTopology(object):
         """
 
         # This could (and probably should) be moved to a config file
+        # XPaths for searches by Resource Group
         rg_pathdictionary = {
             'OIM_Facility': './Facility/Name',
             'OIM_Site': './Site/Name',
             'OIM_ResourceGroup': './GroupName'}
 
+        # XPaths for searches by Resource
         r_pathdictionary = {
             'OIM_Resource': './Name',
             'OIM_ID': './ID',
@@ -105,36 +165,39 @@ class OIMTopology(object):
 
         # Resource group-specific info
         resource_group_elt = self.root.find(resource_grouppath)
-        for key, path in rg_pathdictionary.iteritems():
-            try:
-                returndict[key] = resource_group_elt.find(path).text
-            except AttributeError:
-                # Skip this.  It means there's no information for this key
-                pass
-
         # Resource-specific info
         resource_elt = resource_group_elt.find(
             './Resources/Resource/[Name="{0}"]'.format(resourcename))
-        for key, path in r_pathdictionary.iteritems():
-            try:
-                if key == 'OIM_WLCGAPELNormalFactor':
-                    returndict[key] = float(resource_elt.find(path).text)
-                else:
-                    returndict[key] = resource_elt.find(path).text
-            except AttributeError:
-                # Skip this.  It means there's no information for this key
-                pass
+
+        # Dictionary of Elements/Dict for Resource and Resource group.  Purely
+        # to allow for easier iteration below
+        eltdict = {"ResourceGroup":
+                       {"Element": resource_group_elt, "Dict": rg_pathdictionary},
+                   "Resource":
+                       {"Element": resource_elt, "Dict": r_pathdictionary}
+                   }
+
+        for level, info in eltdict.iteritems():
+            for key, path in info["Dict"].iteritems():
+                try:
+                    if key == 'OIM_WLCGAPELNormalFactor':
+                        returndict[key] = float(info["Element"].find(path).text)
+                    else:
+                        returndict[key] = info["Element"].find(path).text
+                except AttributeError:
+                    # Skip this.  It means there's no information for this key
+                    pass
 
         # All information that requires a bit more scrubbing
         returndict['VOOwnership'] = \
-            self.get_VO_Ownership_by_resource(resource_elt)
+            self.store_VOOwnership_information(resource_elt)
         returndict['Contacts'] = \
-            self.get_Contact_Info_by_resource(resource_elt)
+            self.store_Contact_information(resource_elt)
 
         return returndict
 
     @staticmethod
-    def get_VO_Ownership_by_resource(elt):
+    def store_VOOwnership_information(elt):
         """Using resource name and XPath, finds VOOwnership information from
         parsed XML file
 
@@ -149,7 +212,7 @@ class OIMTopology(object):
         return ownershipdict
 
     @staticmethod
-    def get_Contact_Info_by_resource(elt):
+    def store_Contact_information(elt):
         """Finds contact information of a resource by resource name and XPath
         from parsed XML file.
 
@@ -179,7 +242,7 @@ class OIMTopology(object):
 
         Returns: Dictionary that has relevant OIM information
         """
-        if not self.xml_file:
+        if not self.have_info:
             return {}
         
         if resourcename in self.resourcedict:
@@ -195,7 +258,7 @@ class OIMTopology(object):
             fqdn (string) - FQDN of the resource
 
         Returns: Dictionary that has relevant OIM information"""
-        if not self.xml_file:
+        if not self.have_info:
             return {}
 
         for resourcename, resourcedict in self.resourcedict.iteritems():
@@ -213,7 +276,7 @@ class OIMTopology(object):
 
         Returns: Dictionary that has relevant OIM information
         """
-        if not self.xml_file:
+        if not self.have_info:
             return {}
 
         returndict = {}
@@ -232,7 +295,7 @@ class OIMTopology(object):
 
         Returns: Dictionary that has relevant OIM information
         """
-        if not self.xml_file:
+        if not self.have_info:
             return {}
 
         returndict = {}
@@ -253,8 +316,9 @@ class OIMTopology(object):
 
         Returns dictionary of relevant information to append to GRACC record
         """
-        #Match host desc to resource name
+        # Match host desc to resource name
         # if that fails, to site
+        # if that fails, to resource group
         # if that fails, return {}
 
         returndict = self.get_information_by_resource(doc['Host_description'])
@@ -320,26 +384,30 @@ class OIMTopology(object):
 
         Returns dictionary containing OIM information to append to GRACC record
         """
-        if not self.xml_file:
+        if not self.have_info:
             return {}
 
         rawdict = {}
-        if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
-            # Payload records should be matched on host description
-            rawdict = self.check_hostdescription(doc)
-        elif 'ProbeName' in doc:
-            rawdict = self.check_probe(doc)
-            if not rawdict:
-                rawdict = self.check_site_to_resource(doc)
-        elif 'SiteName' in doc:
-            rawdict = self.check_site_to_resource(doc)
 
+        # Payload records should be matched on host description only
+        if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
+            rawdict = self.check_hostdescription(doc)
+
+        # Otherwise, try to match by probe and then site
+        else:
+            if 'ProbeName' in doc:
+                rawdict = self.check_probe(doc)
+
+            if not rawdict and 'SiteName' in doc:
+                rawdict = self.check_site_to_resource(doc)
+
+        # None of the matches were successful
         if not rawdict:
-            # None of the matches were successful
             return {}
 
         returndict = rawdict.copy()
 
+        # Append VO Ownership info
         if 'VOOwnership' in returndict:
             returndict['OIM_UsageModel'] = self.check_VO(doc, rawdict)
 
