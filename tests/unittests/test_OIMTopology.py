@@ -78,6 +78,13 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertFalse(test_dict)
         return True
 
+    def test_caching(self):
+        """Test to make sure that we can read from cache"""
+        testclass = OIMTopology.OIMTopology()
+        self.assertTrue(testclass.have_info)
+        self.assertFalse(testclass.cachelock.is_locked)
+        return True
+
     def test_dedicated(self):
         """Matching by probename, so the incorrect SiteName should be
         ignored"""

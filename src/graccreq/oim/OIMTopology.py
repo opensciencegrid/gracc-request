@@ -9,8 +9,8 @@ import filelock
 
 SEC_IN_DAY = 86400
 cachefile = '/tmp/resourcedict.pickle'
+lockfile = '/tmp/lockfile_OIM_cache'
 curtime = int(time.time())
-lock = filelock.FileLock('/tmp/lockfile_OIM_cache')
 
 
 class OIMTopology(object):
@@ -21,14 +21,15 @@ class OIMTopology(object):
         self.resourcedict = {}
         self.probe_exp = re.compile('.+:(.+)')
         self.have_info = False
+        self.cachelock = filelock.FileLock(lockfile)
 
         # Lock our cachefile, try to read from it
-        with lock:
+        with self.cachelock:
             print "Read lock"
-            assert lock.is_locked
+            assert self.cachelock.is_locked
             self.have_info = self.read_from_cache()
         print "Read lock released"
-        assert not lock.is_locked
+        assert not self.cachelock.is_locked
 
         # If that didn't work, get file from OIM, parse it, write to cache:
         if not self.have_info:
@@ -37,12 +38,12 @@ class OIMTopology(object):
                 self.parse()
                 if self.resourcedict:
                     self.have_info = True
-                    with lock:
+                    with self.cachelock:
                         print "Write lock"
-                        assert lock.is_locked
+                        assert self.cachelock.is_locked
                         self.write_to_cache()
                     print "Write lock released"
-                    assert not lock.is_locked
+                    assert not self.cachelock.is_locked
 
     def read_from_cache(self):
         """Method to unpickle resourcedict from cache.
