@@ -236,11 +236,28 @@ class OIMTopology(object):
 
     @staticmethod
     def add_matched_to(indict, level):
+        """Add information to instance copy of resource dict that indicates
+        at which level (resource, resource group, etc.) in the resource dict a
+        GRACC entry was matched.
+
+        For example, if we're matching the GRACC record to the resource dict
+        Resource, this will add "Resource" as a value to the "OIM_Match" key
+
+        Returns the dictionary indict with the added OIM_Match: value pair."""
         indict['OIM_Match'] = level
         return indict
 
     @staticmethod
     def add_matched_from(indict, level):
+        """Similar to add_matched_to, this adds information to the instance
+         copy of resource dict as to what field in the GRACC record was used
+         to match.
+
+         For example, if we use the Host_description from the GRACC record
+         and match that to the Resource in the resource dict, this will set the
+         value of OIM_Match to "Host_description-Resource"
+
+         Returns the dictionary indict with the amended OIM_Match: value pair"""
         indict['OIM_Match'] = '{0}-{1}'.format(level, indict['OIM_Match'])
         return indict
 
@@ -251,7 +268,10 @@ class OIMTopology(object):
         Arguments:
             resourcename (string) - Resource Name
 
-        Returns: Dictionary that has relevant OIM information
+        Returns: Dictionary that has relevant OIM information.
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
@@ -269,7 +289,11 @@ class OIMTopology(object):
         Arguments:
             fqdn (string) - FQDN of the resource
 
-        Returns: Dictionary that has relevant OIM information"""
+        Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
+        """
         if not self.have_info:
             return {}
 
@@ -287,6 +311,9 @@ class OIMTopology(object):
             sitename (string) - Site Name
 
         Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
@@ -309,6 +336,9 @@ class OIMTopology(object):
             rgname (string) - Resource Name
 
         Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
