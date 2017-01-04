@@ -234,6 +234,33 @@ class OIMTopology(object):
 
         return contactsdict
 
+    @staticmethod
+    def add_matched_to(indict, level):
+        """Add information to instance copy of resource dict that indicates
+        at which level (resource, resource group, etc.) in the resource dict a
+        GRACC entry was matched.
+
+        For example, if we're matching the GRACC record to the resource dict
+        Resource, this will add "Resource" as a value to the "OIM_Match" key
+
+        Returns the dictionary indict with the added OIM_Match: value pair."""
+        indict['OIM_Match'] = level
+        return indict
+
+    @staticmethod
+    def add_matched_from(indict, level):
+        """Similar to add_matched_to, this adds information to the instance
+         copy of resource dict as to what field in the GRACC record was used
+         to match.
+
+         For example, if we use the Host_description from the GRACC record
+         and match that to the Resource in the resource dict, this will set the
+         value of OIM_Match to "Host_description-Resource"
+
+         Returns the dictionary indict with the amended OIM_Match: value pair"""
+        indict['OIM_Match'] = '{0}-{1}'.format(level, indict['OIM_Match'])
+        return indict
+
     def get_information_by_resource(self, resourcename):
         """Gets the relevant information from the parsed OIM XML file based on
         the Resource Name.  Meant to be called after OIMTopology.parse().
@@ -241,13 +268,17 @@ class OIMTopology(object):
         Arguments:
             resourcename (string) - Resource Name
 
-        Returns: Dictionary that has relevant OIM information
+        Returns: Dictionary that has relevant OIM information.
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
         
         if resourcename in self.resourcedict:
-            return self.resourcedict[resourcename]
+            return self.add_matched_to(self.resourcedict[resourcename],
+                                       'Resource')
         else:
             return {}
 
@@ -258,13 +289,17 @@ class OIMTopology(object):
         Arguments:
             fqdn (string) - FQDN of the resource
 
-        Returns: Dictionary that has relevant OIM information"""
+        Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
+        """
         if not self.have_info:
             return {}
 
-        for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIM_FQDN' in resourcedict and resourcedict['OIM_FQDN'] == fqdn:
-                return resourcedict
+        for resourcename, rdict in self.resourcedict.iteritems():
+            if 'OIM_FQDN' in rdict and rdict['OIM_FQDN'] == fqdn:
+                return self.add_matched_to(rdict, 'FQDN')
         else:
             return {}
 
@@ -276,16 +311,22 @@ class OIMTopology(object):
             sitename (string) - Site Name
 
         Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
 
         returndict = {}
-        for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIM_Site' in resourcedict and resourcedict['OIM_Site'] == sitename:
-                returndict['OIM_Site'] = resourcedict['OIM_Site']
-                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
-        return returndict
+        for resourcename, rdict in self.resourcedict.iteritems():
+            if 'OIM_Site' in rdict and rdict['OIM_Site'] == sitename:
+                returndict['OIM_Site'] = rdict['OIM_Site']
+                returndict['OIM_Facility'] = rdict['OIM_Facility']
+        if returndict:
+            return self.add_matched_to(returndict, 'Site')
+        else:
+            return {}
 
     def get_information_by_resourcegroup(self, rgname):
         """Gets the relevant information from the parsed OIM XML file based on
@@ -295,18 +336,24 @@ class OIMTopology(object):
             rgname (string) - Resource Name
 
         Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
 
         returndict = {}
-        for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIM_ResourceGroup' in resourcedict and \
-                            resourcedict['OIM_ResourceGroup'] == rgname:
-                returndict['OIM_Site'] = resourcedict['OIM_Site']
-                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
-                returndict['OIM_ResourceGroup'] = resourcedict['OIM_ResourceGroup']
-        return returndict
+        for resourcename, rdict in self.resourcedict.iteritems():
+            if 'OIM_ResourceGroup' in rdict and \
+                            rdict['OIM_ResourceGroup'] == rgname:
+                returndict['OIM_Site'] = rdict['OIM_Site']
+                returndict['OIM_Facility'] = rdict['OIM_Facility']
+                returndict['OIM_ResourceGroup'] = rdict['OIM_ResourceGroup']
+        if returndict:
+            return self.add_matched_to(returndict, 'ResourceGroup')
+        else:
+            return {}
 
     def check_hostdescription(self, doc):
         """Matches host description to resource name, site name, or resource
@@ -328,7 +375,11 @@ class OIMTopology(object):
         if not returndict:
             returndict = \
                 self.get_information_by_resourcegroup(doc['Host_description'])
-        return returndict
+
+        if returndict:
+            return self.add_matched_from(returndict, 'Host_description')
+        else:
+            return {}
 
     def check_probe(self, doc):
         """Gets information from OIM based on the probe name passed in
@@ -342,7 +393,9 @@ class OIMTopology(object):
         probe_fqdn_check = self.probe_exp.match(doc['ProbeName'])
         if probe_fqdn_check:
             probe_fqdn = probe_fqdn_check.group(1)
-            return self.get_information_by_fqdn(probe_fqdn)
+            returndict = self.get_information_by_fqdn(probe_fqdn)
+            if returndict:
+                return self.add_matched_from(returndict, 'ProbeName')
         else:
             return {}
 
@@ -355,7 +408,11 @@ class OIMTopology(object):
         Returns a dictionary with the pertinent OIM Topology info, or a blank
          dictionary if a match was not found
         """
-        return self.get_information_by_resource(doc['SiteName'])
+        returndict = self.get_information_by_resource(doc['SiteName'])
+        if returndict:
+            return self.add_matched_from(returndict, 'SiteName')
+        else:
+            return {}
 
     @staticmethod
     def check_VO(doc, rdict):
