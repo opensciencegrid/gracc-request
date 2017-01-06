@@ -55,7 +55,7 @@ class OIMTopology(object):
         Returns True on success, False otherwise"""
         # We check that the cachefile exists and is less than 1 day old
         if os.path.exists(cachefile):
-            if curtime - int(os.path.getctime(cachefile)) < SEC_IN_DAY:
+            if curtime - int(os.path.getmtime(cachefile)) < SEC_IN_DAY:
                 try:
                     with open(cachefile, 'rb') as cache:
                         self.resourcedict = pickle.load(cache)
