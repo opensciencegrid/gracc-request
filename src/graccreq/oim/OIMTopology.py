@@ -31,7 +31,7 @@ class OIMTopology(object):
             logging.debug("Read lock acquired")
             assert self.cachelock.is_locked
             self.have_info = self.read_from_cache()
-            logging.debug("Read lock released")
+        logging.debug("Read lock released")
         assert not self.cachelock.is_locked
 
         # If that didn't work, get file from OIM, parse it, write to cache:
