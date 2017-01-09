@@ -6,6 +6,7 @@ import time
 import os.path
 import pickle
 import filelock
+import logging
 
 SEC_IN_DAY = 86400
 cachefile = '/tmp/resourcedict.pickle'
@@ -24,44 +25,49 @@ class OIMTopology(object):
         self.lockfile = lockfile
         self.cachelock = filelock.FileLock(self.lockfile)
 
+        logging.info("Trying to read from cachefile")
         # Lock our cachefile, try to read from it
         with self.cachelock:
-            print "Read lock"
+            logging.debug("Read lock acquired")
             assert self.cachelock.is_locked
             self.have_info = self.read_from_cache()
-        print "Read lock released"
+        logging.debug("Read lock released")
         assert not self.cachelock.is_locked
 
         # If that didn't work, get file from OIM, parse it, write to cache:
         if not self.have_info:
+            logging.info(
+                "Not reading from cache - getting fresh file from OIM")
             self.xml_file = self.get_file_from_OIM()
             if self.xml_file:
                 self.parse()
                 if self.resourcedict:
                     self.have_info = True
                     with self.cachelock:
-                        print "Write lock"
+                        logging.debug("Write lock")
                         assert self.cachelock.is_locked
                         self.write_to_cache()
-                    print "Write lock released"
+                    logging.debug("Write lock released")
                     assert not self.cachelock.is_locked
 
     def read_from_cache(self):
         """Method to unpickle resourcedict from cache.
         Returns True on success, False otherwise"""
         # We check that the cachefile exists and is less than 1 day old
-        if os.path.exists(cachefile) \
-                and curtime - int(os.path.getctime(cachefile)) < SEC_IN_DAY:
-            try:
-                with open(cachefile, 'rb') as cache:
-                    self.resourcedict = pickle.load(cache)
-                print "Loaded from Cache"
-                return True
-            except pickle.UnpicklingError:
-                print "Could not unpickle cache file"
-                return False
+        if os.path.exists(cachefile):
+            if curtime - int(os.path.getmtime(cachefile)) < SEC_IN_DAY:
+                try:
+                    with open(cachefile, 'rb') as cache:
+                        self.resourcedict = pickle.load(cache)
+                    logging.info("Loaded from Cache")
+                    return True
+                except pickle.UnpicklingError:
+                    logging.warn("Could not unpickle cache file")
+            else:
+                logging.info("Will not read from cache (cache file is too old)")
         else:
-            return False
+            logging.info("Cache file doesn't exist")
+        return False
 
     def write_to_cache(self):
         """Method to pickle up the resourcedict into the cachefile.
@@ -69,10 +75,10 @@ class OIMTopology(object):
         try:
             with open(cachefile, 'wb') as cache:
                 pickle.dump(self.resourcedict, cache)
-            print "Pickled new resource dict to Cache file"
+            logging.info("Pickled new resource dict to Cache file")
             return True
         except pickle.PicklingError:
-            print "Could not pickle new resource dict to Cache file"
+            logging.warn("Could not pickle new resource dict to Cache file")
             return False
 
     @staticmethod
@@ -104,7 +110,7 @@ class OIMTopology(object):
         try:
             oim_xml = urllib2.urlopen(oim_url)
         except (urllib2.HTTPError, urllib2.URLError) as e:
-            print e
+            logging.error(e)
             return None
 
         return oim_xml
@@ -115,10 +121,10 @@ class OIMTopology(object):
         try:
             self.e = ET.parse(self.xml_file)
             self.root = self.e.getroot()
-            print "Parsing file"
+            logging.debug("Parsing OIM file")
         except Exception as e:
-            print e
-            print "Couldn't parse OIM file"
+            logging.warn(e)
+            logging.warn("Couldn't parse OIM file")
             self.have_info = False
             return
 
@@ -442,21 +448,27 @@ class OIMTopology(object):
 
         Returns dictionary containing OIM information to append to GRACC record
         """
+        logging.info("Adding OIMTopology information")
         if not self.have_info:
+            logging.debug("No OIM Topology information for this instance of"
+                          "OIMTopology.  Returning no information")
             return {}
 
         rawdict = {}
 
         # Payload records should be matched on host description only
         if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
+            logging.debug("Matching payload records on host description")
             rawdict = self.check_hostdescription(doc)
 
         # Otherwise, try to match by probe and then site
         else:
             if 'ProbeName' in doc:
+                logging.debug("Trying to match by probe")
                 rawdict = self.check_probe(doc)
 
             if not rawdict and 'SiteName' in doc:
+                logging.debug("Trying to match by site")
                 rawdict = self.check_site_to_resource(doc)
 
         # None of the matches were successful
