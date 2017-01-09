@@ -110,7 +110,7 @@ class OIMTopology(object):
         try:
             oim_xml = urllib2.urlopen(oim_url)
         except (urllib2.HTTPError, urllib2.URLError) as e:
-            logging.warn(e)
+            logging.error(e)
             return None
 
         return oim_xml
