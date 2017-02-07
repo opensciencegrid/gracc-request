@@ -123,7 +123,7 @@ class Client:
         
         :param datetime from_date: A python datetime object representing the begininng of the query's time interval.
         :param datetime to_date: A python datetime object representing the end of the query's time interval
-        :param str kind: The kind of request.  Either "raw" or "summary"
+        :param str kind: The kind of request.  Either "raw", "summary", or "transfer_summary"
         :param function getMessage: A callback to send the received records.
         :param str destination_exchange: The name of the exchange to send data to.
         :param str destination_key: The routing key to use for destination.
