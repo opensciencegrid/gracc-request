@@ -70,7 +70,7 @@ class TestClient(unittest.TestCase):
         
     def test_transfer_summary(self):
         start_time = datetime(2016, 6, 1)
-        end_time = start_time + timedelta(days=7)
+        end_time = start_time + timedelta(days=31)
         status = {'num_messages': 0}
 
         def getMessage(msg):
