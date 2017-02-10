@@ -5,6 +5,7 @@ import pika
 import sys
 from raw_replayer import RawReplayerFactory
 from summary_replayer import SummaryReplayerFactory
+from transfer_summary import TransferSummaryFactory
 import toml
 import argparse
 import logging
