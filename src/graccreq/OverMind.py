@@ -5,6 +5,7 @@ import pika
 import sys
 from raw_replayer import RawReplayerFactory
 from summary_replayer import SummaryReplayerFactory
+from transfer_summary import TransferSummaryFactory
 import toml
 import argparse
 import logging
@@ -87,7 +88,10 @@ class OverMind:
         elif msg_body['kind'] == 'summary':
             logging.debug("Received summary message, dispatching")
             self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters, self._config))
-            pass
+            
+        elif msg_body['kind'] == 'transfer_summary':
+            logging.debug("Received transfer_summary message, dispatching")
+            self._pool.apply_async(TransferSummaryFactory, (msg_body, self.parameters, self._config))
         
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         

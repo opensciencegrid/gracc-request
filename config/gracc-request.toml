@@ -13,8 +13,10 @@ queue = 'gracc.osg.requests'
 
 [ElasticSearch]
 uri = 'http://localhost:9200'
-raw_index = 'gracc.osg.raw0-*'
+raw_index = 'gracc.osg.raw-*'
 raw_type = 'JobUsageRecord'
+transfer_type = 'Storage'
+transfer_index = 'gracc.osg-transfer.raw-*'
 
 [[Corrections]]
 index = 'gracc.corrections'
