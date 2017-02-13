@@ -47,8 +47,8 @@ def TransferSummaryFactory(msg, parameters, config):
         
 class TransferSummary(summary_replayer.SummaryReplayer):
     def __init__(self, message, parameters, config):
-        # Initialize the parent
-        super(SummaryReplayer, self).__init__(message, parameters, config)
+        # Call the init of the SummaryReplayer
+        super(TransferSummary, self).__init__(message, parameters, config)
         
 
     def _queryElasticsearch(self, from_date, to_date, query):
