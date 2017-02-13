@@ -6,6 +6,7 @@ import time
 import os.path
 import pickle
 import filelock
+import logging
 
 SEC_IN_DAY = 86400
 cachefile = '/tmp/resourcedict.pickle'
@@ -24,44 +25,49 @@ class OIMTopology(object):
         self.lockfile = lockfile
         self.cachelock = filelock.FileLock(self.lockfile)
 
+        logging.info("Trying to read from cachefile")
         # Lock our cachefile, try to read from it
         with self.cachelock:
-            print "Read lock"
+            logging.debug("Read lock acquired")
             assert self.cachelock.is_locked
             self.have_info = self.read_from_cache()
-        print "Read lock released"
+        logging.debug("Read lock released")
         assert not self.cachelock.is_locked
 
         # If that didn't work, get file from OIM, parse it, write to cache:
         if not self.have_info:
+            logging.info(
+                "Not reading from cache - getting fresh file from OIM")
             self.xml_file = self.get_file_from_OIM()
             if self.xml_file:
                 self.parse()
                 if self.resourcedict:
                     self.have_info = True
                     with self.cachelock:
-                        print "Write lock"
+                        logging.debug("Write lock")
                         assert self.cachelock.is_locked
                         self.write_to_cache()
-                    print "Write lock released"
+                    logging.debug("Write lock released")
                     assert not self.cachelock.is_locked
 
     def read_from_cache(self):
         """Method to unpickle resourcedict from cache.
         Returns True on success, False otherwise"""
         # We check that the cachefile exists and is less than 1 day old
-        if os.path.exists(cachefile) \
-                and curtime - int(os.path.getctime(cachefile)) < SEC_IN_DAY:
-            try:
-                with open(cachefile, 'rb') as cache:
-                    self.resourcedict = pickle.load(cache)
-                print "Loaded from Cache"
-                return True
-            except pickle.UnpicklingError:
-                print "Could not unpickle cache file"
-                return False
+        if os.path.exists(cachefile):
+            if curtime - int(os.path.getmtime(cachefile)) < SEC_IN_DAY:
+                try:
+                    with open(cachefile, 'rb') as cache:
+                        self.resourcedict = pickle.load(cache)
+                    logging.info("Loaded from Cache")
+                    return True
+                except pickle.UnpicklingError:
+                    logging.warn("Could not unpickle cache file")
+            else:
+                logging.info("Will not read from cache (cache file is too old)")
         else:
-            return False
+            logging.info("Cache file doesn't exist")
+        return False
 
     def write_to_cache(self):
         """Method to pickle up the resourcedict into the cachefile.
@@ -69,10 +75,10 @@ class OIMTopology(object):
         try:
             with open(cachefile, 'wb') as cache:
                 pickle.dump(self.resourcedict, cache)
-            print "Pickled new resource dict to Cache file"
+            logging.info("Pickled new resource dict to Cache file")
             return True
         except pickle.PicklingError:
-            print "Could not pickle new resource dict to Cache file"
+            logging.warn("Could not pickle new resource dict to Cache file")
             return False
 
     @staticmethod
@@ -104,7 +110,7 @@ class OIMTopology(object):
         try:
             oim_xml = urllib2.urlopen(oim_url)
         except (urllib2.HTTPError, urllib2.URLError) as e:
-            print e
+            logging.error(e)
             return None
 
         return oim_xml
@@ -115,10 +121,10 @@ class OIMTopology(object):
         try:
             self.e = ET.parse(self.xml_file)
             self.root = self.e.getroot()
-            print "Parsing file"
+            logging.debug("Parsing OIM file")
         except Exception as e:
-            print e
-            print "Couldn't parse OIM file"
+            logging.warn(e)
+            logging.warn("Couldn't parse OIM file")
             self.have_info = False
             return
 
@@ -234,6 +240,33 @@ class OIMTopology(object):
 
         return contactsdict
 
+    @staticmethod
+    def add_matched_to(indict, level):
+        """Add information to instance copy of resource dict that indicates
+        at which level (resource, resource group, etc.) in the resource dict a
+        GRACC entry was matched.
+
+        For example, if we're matching the GRACC record to the resource dict
+        Resource, this will add "Resource" as a value to the "OIM_Match" key
+
+        Returns the dictionary indict with the added OIM_Match: value pair."""
+        indict['OIM_Match'] = level
+        return indict
+
+    @staticmethod
+    def add_matched_from(indict, level):
+        """Similar to add_matched_to, this adds information to the instance
+         copy of resource dict as to what field in the GRACC record was used
+         to match.
+
+         For example, if we use the Host_description from the GRACC record
+         and match that to the Resource in the resource dict, this will set the
+         value of OIM_Match to "Host_description-Resource"
+
+         Returns the dictionary indict with the amended OIM_Match: value pair"""
+        indict['OIM_Match'] = '{0}-{1}'.format(level, indict['OIM_Match'])
+        return indict
+
     def get_information_by_resource(self, resourcename):
         """Gets the relevant information from the parsed OIM XML file based on
         the Resource Name.  Meant to be called after OIMTopology.parse().
@@ -241,13 +274,17 @@ class OIMTopology(object):
         Arguments:
             resourcename (string) - Resource Name
 
-        Returns: Dictionary that has relevant OIM information
+        Returns: Dictionary that has relevant OIM information.
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
         
         if resourcename in self.resourcedict:
-            return self.resourcedict[resourcename]
+            return self.add_matched_to(self.resourcedict[resourcename],
+                                       'Resource')
         else:
             return {}
 
@@ -258,13 +295,17 @@ class OIMTopology(object):
         Arguments:
             fqdn (string) - FQDN of the resource
 
-        Returns: Dictionary that has relevant OIM information"""
+        Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
+        """
         if not self.have_info:
             return {}
 
-        for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIM_FQDN' in resourcedict and resourcedict['OIM_FQDN'] == fqdn:
-                return resourcedict
+        for resourcename, rdict in self.resourcedict.iteritems():
+            if 'OIM_FQDN' in rdict and rdict['OIM_FQDN'] == fqdn:
+                return self.add_matched_to(rdict, 'FQDN')
         else:
             return {}
 
@@ -276,16 +317,22 @@ class OIMTopology(object):
             sitename (string) - Site Name
 
         Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
 
         returndict = {}
-        for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIM_Site' in resourcedict and resourcedict['OIM_Site'] == sitename:
-                returndict['OIM_Site'] = resourcedict['OIM_Site']
-                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
-        return returndict
+        for resourcename, rdict in self.resourcedict.iteritems():
+            if 'OIM_Site' in rdict and rdict['OIM_Site'] == sitename:
+                returndict['OIM_Site'] = rdict['OIM_Site']
+                returndict['OIM_Facility'] = rdict['OIM_Facility']
+        if returndict:
+            return self.add_matched_to(returndict, 'Site')
+        else:
+            return {}
 
     def get_information_by_resourcegroup(self, rgname):
         """Gets the relevant information from the parsed OIM XML file based on
@@ -295,18 +342,24 @@ class OIMTopology(object):
             rgname (string) - Resource Name
 
         Returns: Dictionary that has relevant OIM information
+
+        Note:  We wrap the return statement in the self.add_matched_to call so
+        that the dict returned has the OIM_Match field as well.
         """
         if not self.have_info:
             return {}
 
         returndict = {}
-        for resourcename, resourcedict in self.resourcedict.iteritems():
-            if 'OIM_ResourceGroup' in resourcedict and \
-                            resourcedict['OIM_ResourceGroup'] == rgname:
-                returndict['OIM_Site'] = resourcedict['OIM_Site']
-                returndict['OIM_Facility'] = resourcedict['OIM_Facility']
-                returndict['OIM_ResourceGroup'] = resourcedict['OIM_ResourceGroup']
-        return returndict
+        for resourcename, rdict in self.resourcedict.iteritems():
+            if 'OIM_ResourceGroup' in rdict and \
+                            rdict['OIM_ResourceGroup'] == rgname:
+                returndict['OIM_Site'] = rdict['OIM_Site']
+                returndict['OIM_Facility'] = rdict['OIM_Facility']
+                returndict['OIM_ResourceGroup'] = rdict['OIM_ResourceGroup']
+        if returndict:
+            return self.add_matched_to(returndict, 'ResourceGroup')
+        else:
+            return {}
 
     def check_hostdescription(self, doc):
         """Matches host description to resource name, site name, or resource
@@ -328,7 +381,11 @@ class OIMTopology(object):
         if not returndict:
             returndict = \
                 self.get_information_by_resourcegroup(doc['Host_description'])
-        return returndict
+
+        if returndict:
+            return self.add_matched_from(returndict, 'Host_description')
+        else:
+            return {}
 
     def check_probe(self, doc):
         """Gets information from OIM based on the probe name passed in
@@ -342,7 +399,9 @@ class OIMTopology(object):
         probe_fqdn_check = self.probe_exp.match(doc['ProbeName'])
         if probe_fqdn_check:
             probe_fqdn = probe_fqdn_check.group(1)
-            return self.get_information_by_fqdn(probe_fqdn)
+            returndict = self.get_information_by_fqdn(probe_fqdn)
+            if returndict:
+                return self.add_matched_from(returndict, 'ProbeName')
         else:
             return {}
 
@@ -355,7 +414,11 @@ class OIMTopology(object):
         Returns a dictionary with the pertinent OIM Topology info, or a blank
          dictionary if a match was not found
         """
-        return self.get_information_by_resource(doc['SiteName'])
+        returndict = self.get_information_by_resource(doc['SiteName'])
+        if returndict:
+            return self.add_matched_from(returndict, 'SiteName')
+        else:
+            return {}
 
     @staticmethod
     def check_VO(doc, rdict):
@@ -385,21 +448,27 @@ class OIMTopology(object):
 
         Returns dictionary containing OIM information to append to GRACC record
         """
+        logging.info("Adding OIMTopology information")
         if not self.have_info:
+            logging.debug("No OIM Topology information for this instance of"
+                          "OIMTopology.  Returning no information")
             return {}
 
         rawdict = {}
 
         # Payload records should be matched on host description only
         if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
+            logging.debug("Matching payload records on host description")
             rawdict = self.check_hostdescription(doc)
 
         # Otherwise, try to match by probe and then site
         else:
             if 'ProbeName' in doc:
+                logging.debug("Trying to match by probe")
                 rawdict = self.check_probe(doc)
 
             if not rawdict and 'SiteName' in doc:
+                logging.debug("Trying to match by site")
                 rawdict = self.check_site_to_resource(doc)
 
         # None of the matches were successful
