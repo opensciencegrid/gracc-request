@@ -83,7 +83,7 @@ class TransferSummary(summary_replayer.SummaryReplayer):
         	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=(2**31)-1)
 
         for metric in metrics:
-        	curBucket.metric(metric, 'sum', field=metric)
+        	curBucket.metric(metric[0], 'sum', field=metric[0], missing=metric[1])
             
         response = s.execute()
             
