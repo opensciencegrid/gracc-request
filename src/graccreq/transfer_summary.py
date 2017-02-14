@@ -73,7 +73,7 @@ class TransferSummary(summary_replayer.SummaryReplayer):
                         ["Grid", "N/A"], ["DN", "N/A"], ["Resource_Source", "N/A"]]
         
         # Njobs, TransferSize, TransferDuration
-        metrics = ["Njobs", "Network", "WallDuration"]
+        metrics = [["Njobs", 1], ["Network", 0], ["WallDuration", 0]]
 
         # If the terms are missing, set as "N/A"
         curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
