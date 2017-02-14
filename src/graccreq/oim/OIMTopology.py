@@ -448,7 +448,6 @@ class OIMTopology(object):
 
         Returns dictionary containing OIM information to append to GRACC record
         """
-        logging.info("Adding OIMTopology information")
         if not self.have_info:
             logging.debug("No OIM Topology information for this instance of"
                           "OIMTopology.  Returning no information")
@@ -458,17 +457,14 @@ class OIMTopology(object):
 
         # Payload records should be matched on host description only
         if 'ResourceType' in doc and doc['ResourceType'] == 'Payload':
-            logging.debug("Matching payload records on host description")
             rawdict = self.check_hostdescription(doc)
 
         # Otherwise, try to match by probe and then site
         else:
             if 'ProbeName' in doc:
-                logging.debug("Trying to match by probe")
                 rawdict = self.check_probe(doc)
 
             if not rawdict and 'SiteName' in doc:
-                logging.debug("Trying to match by site")
                 rawdict = self.check_site_to_resource(doc)
 
         # None of the matches were successful
