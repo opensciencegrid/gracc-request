@@ -12,7 +12,7 @@ class Client:
     Client application to the GRACC Request daemons
     """
     
-    def __init__(self, exchange, routing_key, url=None):
+    def __init__(self, exchange, routing_key, url="amqp://guest:guest@localhost/"):
         """
         Initialization function
             
