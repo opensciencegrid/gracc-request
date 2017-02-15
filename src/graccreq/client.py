@@ -12,7 +12,7 @@ class Client:
     Client application to the GRACC Request daemons
     """
     
-    def __init__(self, exchange, routing_key, host="localhost", username="guest", password="guest", port=5672 vhost="/"):
+    def __init__(self, exchange, routing_key, host="localhost", username="guest", password="guest", port=5672, vhost="/"):
         """
         Initialization function
             
