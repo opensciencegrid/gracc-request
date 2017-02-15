@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Wed Feb 15 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.2.0-1
+- Add support for non-standard ports
+
 * Wed Feb 15 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.1.0-1
 - Add Njobs aggregation
 
