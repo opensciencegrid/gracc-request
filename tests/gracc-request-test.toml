@@ -4,14 +4,7 @@ Profile = true
 [AMQP]
 
 # Host information
-host = "localhost"
-vhost = "/"
-port = 5672
-
-# Username and password for the AMQP router
-username = "guest"
-password = "guest"
-
+url = "amqp://guest:guest@localhost/"
 
 exchange = 'gracc.osg.requests'
 queue = 'gracc.osg.requests'
