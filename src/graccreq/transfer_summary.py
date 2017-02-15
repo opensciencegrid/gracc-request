@@ -73,7 +73,7 @@ class TransferSummary(summary_replayer.SummaryReplayer):
                         ["Grid", "N/A"], ["DN", "N/A"], ["Resource_Source", "N/A"]]
         
         # Njobs, TransferSize, TransferDuration
-        metrics = ["Njobs", "Network", "WallDuration"]
+        metrics = [["Njobs", 1], ["Network", 0], ["WallDuration", 0]]
 
         # If the terms are missing, set as "N/A"
         curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
@@ -83,7 +83,7 @@ class TransferSummary(summary_replayer.SummaryReplayer):
         	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=(2**31)-1)
 
         for metric in metrics:
-        	curBucket.metric(metric, 'sum', field=metric)
+        	curBucket.metric(metric[0], 'sum', field=metric[0], missing=metric[1])
             
         response = s.execute()
             
@@ -111,7 +111,7 @@ class TransferSummary(summary_replayer.SummaryReplayer):
                     if index == (len(unique_terms) - 1):
                         # reached the end of the unique terms
                         for metric in metrics:
-                            nowData[metric] = bucket[metric].value
+                            nowData[metric[0]] = bucket[metric[0]].value
                             # Add the doc count
                         nowData["Count"] = bucket['doc_count']
                         data.append(nowData)
