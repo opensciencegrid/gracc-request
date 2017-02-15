@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.1.0
+Version:        3.2.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
