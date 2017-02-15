@@ -3,6 +3,7 @@
 # Host information
 host = "amqp.example.com"
 vhost = "vhost"
+port = 5671
 
 # Username and password for the AMQP router
 username = "amqpusername"

@@ -12,7 +12,7 @@ class Client:
     Client application to the GRACC Request daemons
     """
     
-    def __init__(self, exchange, routing_key, host="localhost", username="guest", password="guest", vhost="/"):
+    def __init__(self, exchange, routing_key, host="localhost", username="guest", password="guest", port=5672, vhost="/"):
         """
         Initialization function
             
@@ -29,6 +29,7 @@ class Client:
         self.exchange = exchange
         self.routing_key = routing_key
         self.vhost = vhost
+        self.port = port
         
         self.conn = None
         self.messages_received = 0
@@ -79,7 +80,7 @@ class Client:
         """
         credentials = pika.PlainCredentials(self.username, self.password)
         parameters = pika.ConnectionParameters(self.host,
-                                                5672, self.vhost, credentials)
+                                                self.port, self.vhost, credentials)
         self.conn = pika.adapters.blocking_connection.BlockingConnection(parameters)
         
     def _getControlMessage(self, channel, method, properties, body):
