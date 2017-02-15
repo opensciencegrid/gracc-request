@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.0.1
+Version:        3.1.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Wed Feb 15 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.1.0-1
+- Add Njobs aggregation
+
 * Tue Feb 14 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.0.1-1
 - Remove some logging lines
 
