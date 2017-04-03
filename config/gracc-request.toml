@@ -1,20 +1,18 @@
 [AMQP]
 
 # Host information
-host = "amqp.example.com"
-vhost = "vhost"
-
-# Username and password for the AMQP router
-username = "amqpusername"
-password = "amqppassword"
+# scheme://username:password@host:port/vhost
+url = "amqps://amqpusername:amqppassword@amqp.exapmle.com:5671/vhost"
 
 exchange = 'gracc.osg.requests'
 queue = 'gracc.osg.requests'
 
 [ElasticSearch]
 uri = 'http://localhost:9200'
-raw_index = 'gracc.osg.raw0-*'
+raw_index = 'gracc.osg.raw-*'
 raw_type = 'JobUsageRecord'
+transfer_type = 'Storage'
+transfer_index = 'gracc.osg-transfer.raw-*'
 
 [[Corrections]]
 index = 'gracc.corrections'

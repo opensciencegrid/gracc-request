@@ -13,9 +13,10 @@ import datetime
 from graccreq.oim import projects, OIMTopology
 import StringIO
 from graccreq.correct import Corrections
+import summary_replayer
 
 
-def SummaryReplayerFactory(msg, parameters, config):
+def TransferSummaryFactory(msg, parameters, config):
     
     # Start profiling
     if 'General' in config and 'Profile' in config['General'] and config['General']['Profile']:
@@ -25,7 +26,7 @@ def SummaryReplayerFactory(msg, parameters, config):
         pr.enable()
         
     try:
-        replayer = SummaryReplayer(msg, parameters, config)
+        replayer = TransferSummary(msg, parameters, config)
         replayer.run()
     except Exception, e:
         logging.error(traceback.format_exc())
@@ -44,69 +45,12 @@ def SummaryReplayerFactory(msg, parameters, config):
         print s.getvalue()
         
         
-class SummaryReplayer(replayer.Replayer):
+class TransferSummary(summary_replayer.SummaryReplayer):
     def __init__(self, message, parameters, config):
-        super(SummaryReplayer, self).__init__(message, parameters)
-        self._config = config
-        
-        # Initialize the project information
-        self.project = projects.OIMProjects()
-
-        # Initialize the OIM Topology information
-        self.topology = OIMTopology.OIMTopology()
-
-        # Initiatlize name corrections
-        self.corrections = []
-        for c in self._config.get('Corrections',[]):
-            self.corrections.append(Corrections(uri=self._config['ElasticSearch'].get('uri','http://localhost:9200'),
-                                                index=c['index'],
-                                                doc_type=c['doc_type'],
-                                                match_fields=c['match_fields'],
-                                                source_field=c['source_field'],
-                                                dest_field=c['dest_field']))
-        
-    def run(self):
-        
-        logging.debug("Beggining run of SummaryReplayer")
-        self.createConnection()
-        
-        
-        # Send start message to control channel, if requested
-        self.sendControlMessage({'status': 'ok', 'stage': 'starting'})
-
-        # Query elsaticsearch and send the data to the destination
-        logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
-        try:
-            for day in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
-                for record in day:
-                    for c in self.corrections:
-                        c.correct(record)
-                    self.addProperties(record)
-                    self.sendMessage(json.dumps(record))
-        except Exception, e:
-            logging.error("Exception caught in query ES: %s" % str(e))
-            logging.error(traceback.format_exc())
-            raise e
-            
-        
-        self.sendControlMessage({'status': 'ok', 'stage': 'finished'})
-        
-        self.conn.close()
+        # Call the init of the SummaryReplayer
+        super(TransferSummary, self).__init__(message, parameters, config)
         
 
-
-    def on_return(self, channel, method, properties, body):
-        sys.stderr.write("Got returned message\n")
-
-    def addProperties(self, record):
-
-        returned_doc = self.project.parseDoc(record)
-        topology_doc = self.topology.generate_dict_for_gracc(record)
-        record.update(returned_doc)
-        record.update(topology_doc)
-        return record
-        
-        
     def _queryElasticsearch(self, from_date, to_date, query):
         logging.debug("Connecting to ES")
         client = Elasticsearch(timeout=300)
@@ -117,13 +61,19 @@ class SummaryReplayer(replayer.Replayer):
         to_date = dateutil.parser.parse(to_date).date() + datetime.timedelta(days=1)
         
         logging.debug("Beginning search")
-        s = Search(using=client, index=self._config['ElasticSearch']['raw_index'])
+        s = Search(using=client, index=self._config['ElasticSearch']['transfer_index'])
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
-        s = s.query('bool', must=[Q('match', _type=self._config['ElasticSearch']['raw_type'])])
+        s = s.query('bool', must=[Q('match', ResourceType=self._config['ElasticSearch']['transfer_type'])])
         
+        
+        # StartTime, VOcorrid, ProjectNameCorrid, ProbeName, CommonName, Protocol, RemoteSite, Status, IsNew, StorageUnit, Grid, DistguishedName
         # Fill in the unique terms and metrics
-        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
-        metrics = [["WallDuration", 0], ["CpuDuration_user", 0], ["CpuDuration_system", 0], ["CoreHours", 0], ["Njobs", 1]]
+        unique_terms = [["StartTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["ProbeName", "N/A"], ["CommonName", "N/A"], \
+                        ["Resource_Protocol", "N/A"], ["Status", 0], ["Resource_IsNew", "N/A"], ["Network_storageUnit", "N/A"], \
+                        ["Grid", "N/A"], ["DN", "N/A"]]
+        
+        # Njobs, TransferSize, TransferDuration
+        metrics = [["Njobs", 1], ["Network", 0], ["WallDuration", 0]]
 
         # If the terms are missing, set as "N/A"
         curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
@@ -172,10 +122,10 @@ class SummaryReplayer(replayer.Replayer):
         	
         
         # We only want to hold onto 1 day's worth of summaries
-        print len(response.aggregations['EndTime']['buckets'])
-        for day in response.aggregations['EndTime']['buckets']:
+        print len(response.aggregations['StartTime']['buckets'])
+        for day in response.aggregations['StartTime']['buckets']:
             data = []
-            recurseBucket({"EndTime": day['key_as_string']}, day, 1, data)
+            recurseBucket({"StartTime": day['key_as_string']}, day, 1, data)
             yield data
     
 

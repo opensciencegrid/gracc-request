@@ -12,23 +12,18 @@ class Client:
     Client application to the GRACC Request daemons
     """
     
-    def __init__(self, exchange, routing_key, host="localhost", username="guest", password="guest", vhost="/"):
+    def __init__(self, exchange, routing_key, url="amqp://guest:guest@localhost/"):
         """
         Initialization function
             
         :param str exchange: Exchange to send requests to.
         :param str routing_key: Routing key to bind to.
-        :param str host: Host to connect AMQP.  Default: localhost
-        :param str username: username to use for AMQP
-        :param str password: password to use for AMQP
+        :param str url: URL of the amqp connection.  Can be in the form of scheme://username:password@host:port/vhost
         """
         
-        self.host = host
-        self.username = username
-        self.password = password
+        self.url = url
         self.exchange = exchange
         self.routing_key = routing_key
-        self.vhost = vhost
         
         self.conn = None
         self.messages_received = 0
@@ -77,9 +72,7 @@ class Client:
         """
         Initiate the remote connection
         """
-        credentials = pika.PlainCredentials(self.username, self.password)
-        parameters = pika.ConnectionParameters(self.host,
-                                                5672, self.vhost, credentials)
+        parameters = pika.URLParameters(self.url)
         self.conn = pika.adapters.blocking_connection.BlockingConnection(parameters)
         
     def _getControlMessage(self, channel, method, properties, body):
@@ -123,7 +116,7 @@ class Client:
         
         :param datetime from_date: A python datetime object representing the begininng of the query's time interval.
         :param datetime to_date: A python datetime object representing the end of the query's time interval
-        :param str kind: The kind of request.  Either "raw" or "summary"
+        :param str kind: The kind of request.  Either "raw", "summary", or "transfer_summary"
         :param function getMessage: A callback to send the received records.
         :param str destination_exchange: The name of the exchange to send data to.
         :param str destination_key: The routing key to use for destination.

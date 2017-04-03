@@ -5,6 +5,7 @@ import pika
 import sys
 from raw_replayer import RawReplayerFactory
 from summary_replayer import SummaryReplayerFactory
+from transfer_summary import TransferSummaryFactory
 import toml
 import argparse
 import logging
@@ -50,9 +51,7 @@ class OverMind:
         
 
     def createConnection(self):
-        credentials = pika.PlainCredentials(self._config['AMQP']['username'], self._config['AMQP']['password'])
-        self.parameters = pika.ConnectionParameters(self._config['AMQP']['host'],
-                                                5672, self._config['AMQP']['vhost'], credentials)
+        self.parameters = pika.URLParameters(self._config['AMQP']['url'])
         self._conn = pika.adapters.blocking_connection.BlockingConnection(self.parameters)
         
         self._chan = self._conn.channel()
@@ -87,7 +86,10 @@ class OverMind:
         elif msg_body['kind'] == 'summary':
             logging.debug("Received summary message, dispatching")
             self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters, self._config))
-            pass
+            
+        elif msg_body['kind'] == 'transfer_summary':
+            logging.debug("Received transfer_summary message, dispatching")
+            self._pool.apply_async(TransferSummaryFactory, (msg_body, self.parameters, self._config))
         
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         
