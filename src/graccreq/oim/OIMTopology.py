@@ -11,7 +11,6 @@ import logging
 SEC_IN_DAY = 86400
 cachefile = '/tmp/resourcedict.pickle'
 lockfile = '/tmp/lockfile_OIM_cache'
-curtime = int(time.time())
 
 
 class OIMTopology(object):
@@ -54,6 +53,7 @@ class OIMTopology(object):
         """Method to unpickle resourcedict from cache.
         Returns True on success, False otherwise"""
         # We check that the cachefile exists and is less than 1 day old
+        curtime = int(time.time())
         if os.path.exists(cachefile):
             if curtime - int(os.path.getmtime(cachefile)) < SEC_IN_DAY:
                 try:
