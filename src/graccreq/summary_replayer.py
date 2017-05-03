@@ -102,7 +102,6 @@ class SummaryReplayer(replayer.Replayer):
         sys.stderr.write("Got returned message\n")
 
     def addProperties(self, record):
-
         returned_doc = self.project.parseDoc(record)
         topology_doc = self.topology.generate_dict_for_gracc(record)
         vo_doc = self.oimvoinfo.parse_doc(record)

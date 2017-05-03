@@ -107,7 +107,7 @@ class OIMVOInfo(object):
         :return dict doc:  GRACC record with OIM_FOS either added or corrected
         """
         if 'ResourceType' in doc and doc['ResourceType'] != 'Payload':
-            if 'VOName' in doc:
+            if 'VOName' in doc and doc['VOName'].lower() in self.vodict:
                 newfos = self.vodict[doc['VOName'].lower()]['PrimaryFields']
                 doc['OIM_FieldOfScience'] = newfos
                 logging.info('Set FOS to {0}'.format(newfos))
