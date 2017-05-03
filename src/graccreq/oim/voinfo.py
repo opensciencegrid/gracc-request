@@ -103,8 +103,8 @@ class OIMVOInfo(object):
         Parse corrected raw non-Payload doc, write VO FOS into the 
         OIM_FieldofScience field.
         
-        :param dict doc:
-        :return: 
+        :param dict doc: GRACC Record
+        :return dict doc:  GRACC record with OIM_FOS either added or corrected
         """
         if 'ResourceType' in doc and doc['ResourceType'] != 'Payload':
             if 'VOName' in doc:
