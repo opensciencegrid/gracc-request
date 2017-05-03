@@ -34,6 +34,7 @@ class OIMVOInfo(object):
         """
         try:
             oim_xml = urllib2.urlopen(VOURL)
+            logging.info('Downloaded OIM VO info')
         except (urllib2.HTTPError, urllib2.URLError) as e:
             logging.error(e)
             return None
@@ -94,6 +95,7 @@ class OIMVOInfo(object):
                 elif len(lst) == 1:
                     cur_dict[key] = lst[0]
 
+        logging.info('Constructed OIM VO dictionary')
         return
 
     def parse_doc(self, doc):
@@ -106,6 +108,7 @@ class OIMVOInfo(object):
         """
         if 'ResourceType' in doc and doc['ResourceType'] != 'Payload':
             if 'VOName' in doc:
-                doc['OIM_FieldOfScience'] = self.vodict[doc['VOName'].lower()]['PrimaryFields']
-
+                newfos = self.vodict[doc['VOName'].lower()]['PrimaryFields']
+                doc['OIM_FieldOfScience'] = newfos
+                logging.info('Set FOS to {0}'.format(newfos))
         return doc
