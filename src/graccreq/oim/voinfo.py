@@ -102,13 +102,29 @@ class OIMVOInfo(object):
         """
         if 'ResourceType' in doc and doc['ResourceType'] != 'Payload':
             if 'VOName' in doc:
-                doc['OIM_FieldofScience'] = self.vodict[doc['VOName'].lower()]['PrimaryFields']
+                doc['OIM_FieldOfScience'] = self.vodict[doc['VOName'].lower()]['PrimaryFields']
 
         return doc
 
 
 if __name__ == '__main__':
     x = OIMVOInfo()
-    # print x.vodict
-    testdoc = {'VOName':'osg', 'ResourceType':'Batch'}
-    print x.parse_doc(testdoc)
+    testdoc = {
+        "ResourceType": "Batch",
+        "VOName": "atlas",
+        "RawProjectName": "N/A",
+        "ProjectName": "N/A",
+        }
+    print x.parse_doc(testdoc)['OIM_FieldOfScience']  # Should be HEP
+    testdoc2 = {
+        "OIM_Organization": "Georgia Institute of Technology",
+        "ResourceType": "Batch",
+        "VOName": "osg",
+        "RawProjectName": "VERITAS",
+        "OIM_Department": "School of Physics & Center for Relativistic Astrophysics",
+        "ReportableVOName": "osg",
+        "RawVOName": "/osg/LocalGroup=users",
+        "ProjectName": "VERITAS",
+        "OIM_FieldOfScience": "Astrophysics",
+        }
+    print x.parse_doc(testdoc2)['OIM_FieldOfScience']   # Should be Multi-Science Community from OSG VO
