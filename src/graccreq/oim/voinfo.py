@@ -9,7 +9,7 @@ VOURL = "https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_scie
 
 class OIMVOInfo(object):
     """
-    
+    Class to obtain and store VO info from OIM
     """
     # Put any non-nested element before the last item in this list.  The last
     # item is a dict that holds all nested elements and the structure
@@ -24,12 +24,13 @@ class OIMVOInfo(object):
 
     def __init__(self):
         self.xmlfile = self.__get_oim_info()
-        self.__get_vo_info()
+        if self.xmlfile:
+            self.__get_vo_info()
 
     def __get_oim_info(self):
         """
-        
-        :return: 
+        Download VO info from OIM
+        :return file oim_xml: File-like object with OIM VO info in XML format 
         """
         try:
             oim_xml = urllib2.urlopen(VOURL)
@@ -40,8 +41,9 @@ class OIMVOInfo(object):
 
     def __get_vo_info(self):
         """
+        Parse XML file and store VO Information we want in vodict
         
-        :return: 
+        :return: None
         """
         pathattr = re.compile('^.//(\w+)$')     # Top level elements
         pathattr_rec = re.compile('^.//.+/(\w+)/.+$')   # Nested Elements
@@ -60,10 +62,10 @@ class OIMVOInfo(object):
 
             # Nested xpaths
             def recurse_attrs(cur_level, cur_list=[], final_list=[]):
-                if not isinstance(cur_level, dict):
+                if not isinstance(cur_level, dict):   # We're at end of nesting
                     cur_list.append(cur_level)
-                    final_list.append(cur_list)
-                else:
+                    final_list.append(cur_list)     # Add the list to the final output
+                else:       # Process current level, go down to next level
                     for key in cur_level:
                         nowlist = deepcopy(cur_list)
                         nowlist.append(key)
@@ -77,8 +79,10 @@ class OIMVOInfo(object):
 
             # Look for info in XML file
             for path in xpaths:
+                # Grab whichever regex returns a match
                 m = filter(None, (pat.match(path) for pat in (pathattr, pathattr_rec)))
                 assert len(m) == 1  # One or other should be a match, not both
+
                 if m:
                     key = m[0].group(1)
                 else:
@@ -105,26 +109,3 @@ class OIMVOInfo(object):
                 doc['OIM_FieldOfScience'] = self.vodict[doc['VOName'].lower()]['PrimaryFields']
 
         return doc
-
-
-if __name__ == '__main__':
-    x = OIMVOInfo()
-    testdoc = {
-        "ResourceType": "Batch",
-        "VOName": "atlas",
-        "RawProjectName": "N/A",
-        "ProjectName": "N/A",
-        }
-    print x.parse_doc(testdoc)['OIM_FieldOfScience']  # Should be HEP
-    testdoc2 = {
-        "OIM_Organization": "Georgia Institute of Technology",
-        "ResourceType": "Batch",
-        "VOName": "osg",
-        "RawProjectName": "VERITAS",
-        "OIM_Department": "School of Physics & Center for Relativistic Astrophysics",
-        "ReportableVOName": "osg",
-        "RawVOName": "/osg/LocalGroup=users",
-        "ProjectName": "VERITAS",
-        "OIM_FieldOfScience": "Astrophysics",
-        }
-    print x.parse_doc(testdoc2)['OIM_FieldOfScience']   # Should be Multi-Science Community from OSG VO
