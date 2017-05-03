@@ -10,7 +10,7 @@ import replayer
 import dateutil
 import copy
 import datetime
-from graccreq.oim import projects, OIMTopology
+from graccreq.oim import projects, OIMTopology, voinfo
 import StringIO
 from graccreq.correct import Corrections
 
@@ -54,6 +54,9 @@ class SummaryReplayer(replayer.Replayer):
 
         # Initialize the OIM Topology information
         self.topology = OIMTopology.OIMTopology()
+
+        # Initialize the OIM VO information
+        self.oimvoinfo = voinfo.OIMVOInfo()
 
         # Initiatlize name corrections
         self.corrections = []
@@ -102,10 +105,11 @@ class SummaryReplayer(replayer.Replayer):
 
         returned_doc = self.project.parseDoc(record)
         topology_doc = self.topology.generate_dict_for_gracc(record)
+        vo_doc = self.oimvoinfo.parse_doc(record)
         record.update(returned_doc)
         record.update(topology_doc)
+        record.update(vo_doc)
         return record
-        
         
     def _queryElasticsearch(self, from_date, to_date, query):
         logging.debug("Connecting to ES")
