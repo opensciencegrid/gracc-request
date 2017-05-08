@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.3.0
+Version:        3.4.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Wed Mar 30 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.4.0-1
+- Remove Resource_Source and Resource_Destination from transfer summaries
+
 * Wed Feb 15 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.3.0-1
 - Use URLs to specify AMQP host
 
