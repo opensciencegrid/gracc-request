@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.5.0
+Version:        3.6.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Tue May 16 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.6.0-1
+- Fix bug in Field of Science calculation
+
 * Mon May 08 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.5.0-1
 - Add Field of Science to VO records
 - Add timeout to service file for rabbitmq failures
