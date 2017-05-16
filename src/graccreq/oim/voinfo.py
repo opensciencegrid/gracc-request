@@ -108,7 +108,25 @@ class OIMVOInfo(object):
         """
         if 'ResourceType' in doc and doc['ResourceType'] != 'Payload':
             if 'VOName' in doc and doc['VOName'].lower() in self.vodict:
-                newfos = self.vodict[doc['VOName'].lower()]['PrimaryFields']
-                doc['OIM_FieldOfScience'] = newfos
-                logging.info('Set FOS to {0}'.format(newfos))
+                curvodict = self.vodict[doc['VOName'].lower()]
+                if 'PrimaryFields' in curvodict:
+                    newfos = curvodict['PrimaryFields']
+                    doc['OIM_FieldOfScience'] = newfos
+                    logging.info('Set FOS to {0}'.format(newfos))
         return doc
+
+
+if __name__ == '__main__':
+    v = OIMVOInfo()
+    testdoc = {
+            "OIM_Organization": "Georgia Institute of Technology",
+            "ResourceType": "Batch",
+            "VOName": "osg",
+            "RawProjectName": "VERITAS",
+            "OIM_Department": "School of Physics & Center for Relativistic Astrophysics",
+            "ReportableVOName": "osg",
+            "RawVOName": "/osg/LocalGroup=users",
+            "ProjectName": "VERITAS",
+            "OIM_FieldOfScience": "Astrophysics",
+        }
+    print v.parse_doc(testdoc)
