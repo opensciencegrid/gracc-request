@@ -14,3 +14,9 @@ It is easy to install the GRACC Request Daemon with virtualenv
     pip install -r requirements.txt
     python setup.py install
 
+
+## Docker Installation
+
+A docker image with gracc-request installed in available as opensciencegrid/gracc-request.  
+
+
