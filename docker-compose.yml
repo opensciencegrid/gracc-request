@@ -1,0 +1,9 @@
+version: '2'
+services:
+  gracc-request:
+    build: .
+    volumes:
+     - ./tests/gracc-request-test.toml:/etc/graccreq/config.d/gracc-request.toml
+    command: /usr/bin/graccreq -c /etc/graccreq/config.d/gracc-request.toml
+
+  
