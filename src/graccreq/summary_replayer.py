@@ -102,6 +102,15 @@ class SummaryReplayer(replayer.Replayer):
         sys.stderr.write("Got returned message\n")
 
     def addProperties(self, record):
+        
+        # If ProjectName is "N/A", then set 
+        # ProjectName to VOName
+        if ('ProjectName' in record and 
+            'VOName' in record and 
+            (record["ProjectName"].lower() == "n/a" or
+            record["ProjectName"].lower() == "unknown")):
+            record["ProjectName"] = record["VOName"]
+            
         returned_doc = self.project.parseDoc(record)
         topology_doc = self.topology.generate_dict_for_gracc(record)
         vo_doc = self.oimvoinfo.parse_doc(record)
