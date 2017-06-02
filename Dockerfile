@@ -2,18 +2,7 @@
 FROM opensciencegrid/osg-wn:3.3-el7
 
 
-RUN cat > /etc/yum.repos.d/djw8605-gracc.repo << EOF
-[djw8605-GRACC]
-name=Copr repo for GRACC owned by djw8605
-baseurl=https://copr-be.cloud.fedoraproject.org/results/djw8605/GRACC/epel-7-$basearch/
-type=rpm-md
-skip_if_unavailable=True
-gpgcheck=1
-gpgkey=https://copr-be.cloud.fedoraproject.org/results/djw8605/GRACC/pubkey.gpg
-repo_gpgcheck=0
-enabled=1
-enabled_metadata=1
-EOF
+RUN curl -o /etc/yum.repos.d/djw8605-GRACC-epel-7.repo https://copr.fedorainfracloud.org/coprs/djw8605/GRACC/repo/epel-7/djw8605-GRACC-epel-7.repo
 
 RUN yum -y install python-setuptools python2-pika python-elasticsearch-dsl python-dateutil python-toml python-filelock
 
