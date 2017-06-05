@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.7.1
+Version:        3.7.2
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Fri Jun 02 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.2-1
+- Set project name if the ProjectName does not exist
+
 * Fri Jun 02 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.1-1
 - Fix dependencies in Dockerfile
 
