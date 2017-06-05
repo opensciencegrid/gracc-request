@@ -105,10 +105,10 @@ class SummaryReplayer(replayer.Replayer):
         
         # If ProjectName is "N/A", then set 
         # ProjectName to VOName
-        if ('ProjectName' in record and 
-            'VOName' in record and 
-            (record["ProjectName"].lower() == "n/a" or
-            record["ProjectName"].lower() == "unknown")):
+        if ('VOName' in record and 
+            (('ProjectName' not in record) or
+            ('ProjectName' in record and record["ProjectName"].lower() == "n/a") or
+            ('ProjectName' in record and record["ProjectName"].lower() == "unknown"))):
             record["ProjectName"] = record["VOName"]
             
         returned_doc = self.project.parseDoc(record)
