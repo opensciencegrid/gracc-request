@@ -6,7 +6,7 @@ from copy import deepcopy
 
 
 VOURL = "https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
-defconfig = '/etc/gracc-request/gracc-request.toml'
+
 
 class OIMVOInfo(object):
     """
