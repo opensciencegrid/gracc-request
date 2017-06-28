@@ -21,6 +21,7 @@ class OIMTopology(object):
     def __init__(self, url=None):
         if url is not None:
             self.oim_url = url
+
         self.resourcedict = {}
         self.probe_exp = re.compile('.+:(.+)')
         self.have_info = False
