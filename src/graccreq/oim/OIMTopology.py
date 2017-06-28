@@ -12,12 +12,16 @@ SEC_IN_DAY = 86400
 cachefile = '/tmp/resourcedict.pickle'
 lockfile = '/tmp/lockfile_OIM_cache'
 
+OIM_url = "http://myosg.grid.iu.edu/rgsummary/xml?summary_attrs_showhierarchy=on&summary_attrs_showwlcg=on&summary_attrs_showservice=on&summary_attrs_showfqdn=on&summary_attrs_showvoownership=on&summary_attrs_showcontact=on&gip_status_attrs_showtestresults=on&downtime_attrs_showpast=&account_type=cumulative_hours&ce_account_type=gip_vo&se_account_type=vo_transfer_volume&bdiitree_type=total_jobs&bdii_object=service&bdii_server=is-osg&all_resources=on&facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on&active=on&active_value=1&disable_value=1"
+
 
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
-    def __init__(self):
-        self.e = None
-        self.root = None
+    def __init__(self, url=None):
+        if url is None:
+            self.url = OIM_url
+        else:
+            self.url = url
         self.resourcedict = {}
         self.probe_exp = re.compile('.+:(.+)')
         self.have_info = False
@@ -81,46 +85,21 @@ class OIMTopology(object):
             logging.warn("Could not pickle new resource dict to Cache file")
             return False
 
-    @staticmethod
-    def get_file_from_OIM():
-        """Gets a new file from OIM.  Passes in today's date"""
-        today = date.today()
-        startdate = today - timedelta(days=7)
-        rawdateslist = [startdate.month, startdate.day, startdate.year,
-                        today.month, today.day, today.year]
-        dateslist = ['0' + str(elt) if len(str(elt)) == 1 else str(elt)
-                     for elt in rawdateslist]
-
-        oim_url = 'http://myosg.grid.iu.edu/rgsummary/xml?' \
-                  'summary_attrs_showhierarchy=on&summary_attrs_showwlcg=on' \
-                  '&summary_attrs_showservice=on&summary_attrs_showfqdn=on' \
-                  '&summary_attrs_showvoownership=on' \
-                  '&summary_attrs_showcontact=on' \
-                  '&gip_status_attrs_showtestresults=on' \
-                  '&downtime_attrs_showpast=&account_type=cumulative_hours' \
-                  '&ce_account_type=gip_vo&se_account_type=vo_transfer_volume'\
-                  '&bdiitree_type=total_jobs&bdii_object=service' \
-                  '&bdii_server=is-osg&start_type=7daysago' \
-                  '&start_date={0}%2F{1}%2F{2}&end_type=now' \
-                  '&end_date={3}%2F{4}%2F{5}&all_resources=on' \
-                  '&facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on' \
-                  '&active=on&active_value=1&disable_value=1' \
-            .format(*dateslist)  # Take date into account to generate URL
-
+    def get_file_from_OIM(self):
+        """Gets a new file from OIM"""
         try:
-            oim_xml = urllib2.urlopen(oim_url)
+            oim_xml = urllib2.urlopen(self.url)
         except (urllib2.HTTPError, urllib2.URLError) as e:
             logging.error(e)
             return None
-
         return oim_xml
 
     def parse(self):
         """Parses XML file using ElementTree.parse().  Also builds dictionary
         of Resource Name :{resource information} format for future lookups"""
         try:
-            self.e = ET.parse(self.xml_file)
-            self.root = self.e.getroot()
+            p = ET.parse(self.xml_file)
+            self.root = p.getroot()
             logging.debug("Parsing OIM file")
         except Exception as e:
             logging.warn(e)
