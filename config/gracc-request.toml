@@ -27,3 +27,6 @@ doc_type = 'project'
 match_fields = ['ProjectName']
 source_field = 'CorrectedProjectName'
 dest_field = 'ProjectName'
+
+[OIM_URLs]
+voinfo = 'https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name'

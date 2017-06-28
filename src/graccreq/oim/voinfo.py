@@ -6,6 +6,7 @@ from copy import deepcopy
 
 
 VOURL = "https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
+defconfig = '/etc/gracc-request/gracc-request.toml'
 
 class OIMVOInfo(object):
     """
@@ -22,7 +23,11 @@ class OIMVOInfo(object):
                          ]
     vodict = {}
 
-    def __init__(self):
+    def __init__(self, url=None):
+        if url is None:
+            self.url = VOURL
+        else:
+            self.url = url
         self.xmlfile = self.__get_oim_info()
         if self.xmlfile:
             self.__get_vo_info()
@@ -33,7 +38,7 @@ class OIMVOInfo(object):
         :return file oim_xml: File-like object with OIM VO info in XML format 
         """
         try:
-            oim_xml = urllib2.urlopen(VOURL)
+            oim_xml = urllib2.urlopen(self.url)
             logging.info('Downloaded OIM VO info')
         except (urllib2.HTTPError, urllib2.URLError) as e:
             logging.error(e)
@@ -118,6 +123,7 @@ class OIMVOInfo(object):
 
 if __name__ == '__main__':
     v = OIMVOInfo()
+
     testdoc = {
             "OIM_Organization": "Georgia Institute of Technology",
             "ResourceType": "Batch",

@@ -56,7 +56,7 @@ class SummaryReplayer(replayer.Replayer):
         self.topology = OIMTopology.OIMTopology()
 
         # Initialize the OIM VO information
-        self.oimvoinfo = voinfo.OIMVOInfo()
+        self.oimvoinfo = voinfo.OIMVOInfo(url=self._config['OIM_URLs'].get('voinfo'))
 
         # Initiatlize name corrections
         self.corrections = []
