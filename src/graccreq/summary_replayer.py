@@ -50,7 +50,7 @@ class SummaryReplayer(replayer.Replayer):
         self._config = config
         
         # Initialize the project information
-        self.project = projects.OIMProjects()
+        self.project = projects.OIMProjects(url=self._config['OIM_URLs'].get('projects'))
 
         # Initialize the OIM Topology information
         self.topology = OIMTopology.OIMTopology(url=self._config['OIM_URLs'].get('oimtopology'))
