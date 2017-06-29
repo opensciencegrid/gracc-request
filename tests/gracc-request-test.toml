@@ -14,3 +14,8 @@ raw_index = 'gracc.osg.raw*'
 raw_type = 'JobUsageRecord'
 transfer_type = 'Storage'
 transfer_index = 'gracc.osg-transfer.raw-*'
+
+[OIM_URLs]
+voinfo = 'https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name'
+oimtopology = 'http://myosg.grid.iu.edu/rgsummary/xml?summary_attrs_showhierarchy=on&summary_attrs_showwlcg=on&summary_attrs_showservice=on&summary_attrs_showfqdn=on&summary_attrs_showvoownership=on&summary_attrs_showcontact=on&gip_status_attrs_showtestresults=on&downtime_attrs_showpast=&account_type=cumulative_hours&ce_account_type=gip_vo&se_account_type=vo_transfer_volume&bdiitree_type=total_jobs&bdii_object=service&bdii_server=is-osg&all_resources=on&facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on&active=on&active_value=1&disable_value=1'
+projects = 'http://myosg.grid.iu.edu/miscproject/xml?count_sg_1&count_active=on&count_enabled=on'
