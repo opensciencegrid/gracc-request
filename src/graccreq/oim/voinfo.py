@@ -5,12 +5,15 @@ import re
 from copy import deepcopy
 
 
-VOURL = "https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
+
 
 class OIMVOInfo(object):
     """
     Class to obtain and store VO info from OIM
     """
+
+    oim_url = "https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
+
     # Put any non-nested element before the last item in this list.  The last
     # item is a dict that holds all nested elements and the structure
     wanted_attributes = ['LongName', 'Name',        # These two are examples - we don't actually need them
@@ -22,7 +25,10 @@ class OIMVOInfo(object):
                          ]
     vodict = {}
 
-    def __init__(self):
+    def __init__(self, url=None):
+        if url is not None:
+            self.oim_url = url
+
         self.xmlfile = self.__get_oim_info()
         if self.xmlfile:
             self.__get_vo_info()
@@ -33,7 +39,7 @@ class OIMVOInfo(object):
         :return file oim_xml: File-like object with OIM VO info in XML format 
         """
         try:
-            oim_xml = urllib2.urlopen(VOURL)
+            oim_xml = urllib2.urlopen(self.oim_url)
             logging.info('Downloaded OIM VO info')
         except (urllib2.HTTPError, urllib2.URLError) as e:
             logging.error(e)
@@ -118,6 +124,7 @@ class OIMVOInfo(object):
 
 if __name__ == '__main__':
     v = OIMVOInfo()
+
     testdoc = {
             "OIM_Organization": "Georgia Institute of Technology",
             "ResourceType": "Batch",

@@ -50,13 +50,13 @@ class SummaryReplayer(replayer.Replayer):
         self._config = config
         
         # Initialize the project information
-        self.project = projects.OIMProjects()
+        self.project = projects.OIMProjects(url=self._config['OIM_URLs'].get('projects'))
 
         # Initialize the OIM Topology information
-        self.topology = OIMTopology.OIMTopology()
+        self.topology = OIMTopology.OIMTopology(url=self._config['OIM_URLs'].get('oimtopology'))
 
         # Initialize the OIM VO information
-        self.oimvoinfo = voinfo.OIMVOInfo()
+        self.oimvoinfo = voinfo.OIMVOInfo(url=self._config['OIM_URLs'].get('voinfo'))
 
         # Initiatlize name corrections
         self.corrections = []

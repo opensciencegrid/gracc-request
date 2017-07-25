@@ -7,13 +7,16 @@ class OIMProjects(object):
     
     wanted_attributes = ['Name', 'PIName', 'Organization', 'Department', 'FieldOfScience']
     
-    def __init__(self):
+    def __init__(self, url=None):
         """
         This is where you would create the cache of the projects
         """
         
         self.dict_name = {}
-        
+
+        if url is not None:
+            self.oim_url = url
+
         # Get the Project information
         oim_xml = urllib2.urlopen(self.oim_url)
         self._processProjects(oim_xml)
