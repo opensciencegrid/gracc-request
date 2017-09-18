@@ -135,7 +135,7 @@ class SummaryReplayer(replayer.Replayer):
         
         # Fill in the unique terms and metrics
         unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
-        metrics = [["WallDuration", 0], ["CpuDuration_user", 0], ["CpuDuration_system", 0], ["CoreHours", 0], ["Njobs", 1]]
+        metrics = [["WallDuration", 0], ["CpuDuration_user", 0], ["CpuDuration_system", 0], ["CoreHours", 0], ["Njobs", 1], ["CpuDuration", 0]]
 
         # If the terms are missing, set as "N/A"
         curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
