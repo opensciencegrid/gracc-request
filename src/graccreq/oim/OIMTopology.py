@@ -13,7 +13,6 @@ cachefile = '/tmp/resourcedict.pickle'
 lockfile = '/tmp/lockfile_OIM_cache'
 
 
-
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
     oim_url = "http://myosg.grid.iu.edu/rgsummary/xml?summary_attrs_showhierarchy=on&summary_attrs_showwlcg=on&summary_attrs_showservice=on&summary_attrs_showfqdn=on&summary_attrs_showvoownership=on&summary_attrs_showcontact=on&gip_status_attrs_showtestresults=on&downtime_attrs_showpast=&account_type=cumulative_hours&ce_account_type=gip_vo&se_account_type=vo_transfer_volume&bdiitree_type=total_jobs&bdii_object=service&bdii_server=is-osg&all_resources=on&facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on&active=on&active_value=1&disable_value=1"
@@ -194,7 +193,7 @@ class OIMTopology(object):
         """
         ownershipdict = {}
         for el in elt.find('./VOOwnership').findall('Ownership'):
-            ownershipdict[el.find('VO').text] = float(el.find('Percent').text)
+            ownershipdict[el.find('VO').text.lower()] = float(el.find('Percent').text)
         return ownershipdict
 
     @staticmethod
@@ -260,10 +259,10 @@ class OIMTopology(object):
         """
         if not self.have_info:
             return {}
-        
-        if resourcename in self.resourcedict:
-            return self.add_matched_to(self.resourcedict[resourcename],
-                                       'Resource')
+
+        for rname, rdict in self.resourcedict.iteritems():
+            if rname.lower() == resourcename.lower():
+                return self.add_matched_to(rdict, 'Resource')
         else:
             return {}
 
@@ -283,7 +282,7 @@ class OIMTopology(object):
             return {}
 
         for resourcename, rdict in self.resourcedict.iteritems():
-            if 'OIM_FQDN' in rdict and rdict['OIM_FQDN'] == fqdn:
+            if 'OIM_FQDN' in rdict and rdict['OIM_FQDN'].lower() == fqdn.lower():
                 return self.add_matched_to(rdict, 'FQDN')
         else:
             return {}
@@ -305,7 +304,7 @@ class OIMTopology(object):
 
         returndict = {}
         for resourcename, rdict in self.resourcedict.iteritems():
-            if 'OIM_Site' in rdict and rdict['OIM_Site'] == sitename:
+            if 'OIM_Site' in rdict and rdict['OIM_Site'].lower() == sitename.lower():
                 returndict['OIM_Site'] = rdict['OIM_Site']
                 returndict['OIM_Facility'] = rdict['OIM_Facility']
         if returndict:
@@ -331,7 +330,7 @@ class OIMTopology(object):
         returndict = {}
         for resourcename, rdict in self.resourcedict.iteritems():
             if 'OIM_ResourceGroup' in rdict and \
-                            rdict['OIM_ResourceGroup'] == rgname:
+                            rdict['OIM_ResourceGroup'].lower() == rgname.lower():
                 returndict['OIM_Site'] = rdict['OIM_Site']
                 returndict['OIM_Facility'] = rdict['OIM_Facility']
                 returndict['OIM_ResourceGroup'] = rdict['OIM_ResourceGroup']

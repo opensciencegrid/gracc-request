@@ -13,12 +13,12 @@ class BasicOIMTopologyTests(unittest.TestCase):
 
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
-        testdict = self.topology.get_information_by_fqdn('fifebatch1.fnal.gov')
+        testdict = self.topology.get_information_by_fqdn('jobsub01.fnal.gov')
         self.assertEqual(testdict['OIM_Facility'], 'Fermi National Accelerator'
                                                ' Laboratory')
         self.assertEqual(testdict['OIM_Site'], 'FermiGrid')
-        self.assertEqual(testdict['OIM_ResourceGroup'], 'FNAL_FIFE_SUBMIT')
-        self.assertEqual(testdict['OIM_Resource'],'FIFE_SUBMIT_1')
+        self.assertEqual(testdict['OIM_ResourceGroup'], 'GPGRID')
+        self.assertEqual(testdict['OIM_Resource'],'FNAL_JOBSUB_01')
         self.assertEqual(testdict['OIM_Match'], 'FQDN')
         return True
 
@@ -50,6 +50,11 @@ class GRACCDictTests(BasicOIMTopologyTests):
                                    'VOName': 'Fermilab',
                                    'ProbeName':
                                        'condor:gate02.grid.umich.edu1231231'}
+        cls.testdoc_fail_probe_case_sensitive = {'SiteName': 'aglt2_SL6',
+                                   'VOName': 'Fermilab',
+                                   'ProbeName':
+                                       'condor:gate02.grid.umich.edu1231231'}
+
         cls.testdoc_noprobe = {'SiteName': 'AGLT2_SL6',
                                    'VOName': 'Fermilab'}
         cls.testdoc_nositeorprobe = {'VOName': 'Fermilab'}
@@ -70,9 +75,13 @@ class GRACCDictTests(BasicOIMTopologyTests):
         cls.testdoc_payload_rg = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                                   'Host_description': 'Hyak',
                                   'ResourceType': 'Payload'}
+        cls.testdoc_case_sensitive = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+                                  'Host_description': 'hYaK',
+                                  'ResourceType': 'Payload'}
         cls.testdoc_payload_fail = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                                     'Host_description': 'GPGrid12345',
                                     'ResourceType': 'Payload'}
+
 
     def test_blankdict(self):
         """If URL retrieval fails or parsing didn't work, we should get a
@@ -122,6 +131,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(op['OIM_Match'], 'ProbeName-FQDN')
         return True
 
+
     def test_fallbacktosite(self):
         """Probe name is wrong, so should match on site name to Resource 
         Group"""
@@ -135,7 +145,22 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
         self.assertEqual(fail_probe['OIM_Match'], 'SiteName-Resource')
         return True
-    
+
+
+    def test_fallbacktosite_case_sensitive(self):
+        """Probe name is wrong, so should match on site name to Resource
+        Group.  Same as fallbacktosite, but with case sensitivity checking"""
+        fail_probe = self.topology.generate_dict_for_gracc(
+            self.testdoc_fail_probe_case_sensitive)
+        self.assertEqual(fail_probe['OIM_Facility'], 'University of Michigan')
+        self.assertEqual(fail_probe['OIM_Site'], 'AGLT2')
+        self.assertEqual(fail_probe['OIM_ResourceGroup'], 'AGLT2')
+        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
+        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
+        self.assertEqual(fail_probe['OIM_Match'], 'SiteName-Resource')
+        return True
+
     def test_fail(self):
         """Probe name and SiteName are wrong"""
         fail_dict = self.topology.generate_dict_for_gracc(
@@ -198,6 +223,21 @@ class GRACCDictTests(BasicOIMTopologyTests):
         """Payload record - should be successful match for Hyak Resource
         Group"""
         rg = self.topology.generate_dict_for_gracc(self.testdoc_payload_rg)
+        self.assertEqual(rg['OIM_Facility'], 'University of Washington')
+        self.assertEqual(rg['OIM_Site'], 'UW-IT')
+        self.assertEqual(rg['OIM_ResourceGroup'], 'Hyak')
+        res = rg.get('OIM_Resource')
+        um = rg.get('OIM_UsageModel')
+        self.assertFalse(res)
+        self.assertFalse(um)
+        self.assertEqual(rg['OIM_Match'], 'Host_description-ResourceGroup')
+        return True
+
+    def test_payload_case_sensitive(self):
+        """Payload record, same as test_payload_rg, but with the case wrong
+        in the test doc - should be successful match for Hyak Resource
+        Group"""
+        rg = self.topology.generate_dict_for_gracc(self.testdoc_case_sensitive)
         self.assertEqual(rg['OIM_Facility'], 'University of Washington')
         self.assertEqual(rg['OIM_Site'], 'UW-IT')
         self.assertEqual(rg['OIM_ResourceGroup'], 'Hyak')
