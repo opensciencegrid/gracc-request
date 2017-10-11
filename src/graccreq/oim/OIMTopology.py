@@ -221,7 +221,7 @@ class OIMTopology(object):
         """
         ownershipdict = {}
         for el in elt.find('./VOOwnership').findall('Ownership'):
-            ownershipdict[el.find('VO').text.lower()] = float(el.find('Percent').text)
+            ownershipdict[el.find('VO').text] = float(el.find('Percent').text)
         return ownershipdict
 
     @staticmethod
