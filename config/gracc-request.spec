@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.3.0
+Version:        3.7.3
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,28 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Fri Sep 18 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.3-1
+- Collect CpuDuration along with user and system variants
+
+* Fri Jun 02 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.2-1
+- Set project name if the ProjectName does not exist
+
+* Fri Jun 02 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.1-1
+- Fix dependencies in Dockerfile
+
+* Fri Jun 02 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.0-1
+- Set ProjectName to VOName if N/A
+
+* Tue May 16 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.6.0-1
+- Fix bug in Field of Science calculation
+
+* Mon May 08 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.5.0-1
+- Add Field of Science to VO records
+- Add timeout to service file for rabbitmq failures
+
+* Wed Mar 30 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.4.0-1
+- Remove Resource_Source and Resource_Destination from transfer summaries
+
 * Wed Feb 15 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.3.0-1
 - Use URLs to specify AMQP host
 
