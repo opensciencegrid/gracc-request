@@ -13,6 +13,34 @@ cachefile = '/tmp/resourcedict.pickle'
 lockfile = '/tmp/lockfile_OIM_cache'
 
 
+def add_matched_to(level):
+    """Decorator to take a matched dict returned by a function func
+    and add a 'OIM_Match' field with value 'level' if it's not an empty dict"""
+    def add_matched_decorator(func):
+        def wrapper(*args):
+            d = func(*args)
+            if d != {}:
+                d['OIM_Match'] = level
+            return d
+        return wrapper
+    return add_matched_decorator
+
+
+def add_matched_from(level):
+    """Decorator to take a matched dict returned by a function func
+    and append to the existing 'OIM_Match' field with value 'level'"""
+    def add_matched_decorator(func):
+        def wrapper(*args):
+            d = func(*args)
+            try:
+                d['OIM_Match'] = '{0}-{1}'.format(level, d['OIM_Match'])
+            except KeyError:  # Blank dict most probably.  Just return that
+                pass
+            return d
+        return wrapper
+    return add_matched_decorator
+
+
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
     oim_url = "http://myosg.grid.iu.edu/rgsummary/xml?summary_attrs_showhierarchy=on&summary_attrs_showwlcg=on&summary_attrs_showservice=on&summary_attrs_showfqdn=on&summary_attrs_showvoownership=on&summary_attrs_showcontact=on&gip_status_attrs_showtestresults=on&downtime_attrs_showpast=&account_type=cumulative_hours&ce_account_type=gip_vo&se_account_type=vo_transfer_volume&bdiitree_type=total_jobs&bdii_object=service&bdii_server=is-osg&all_resources=on&facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on&active=on&active_value=1&disable_value=1"
@@ -218,33 +246,7 @@ class OIMTopology(object):
 
         return contactsdict
 
-    @staticmethod
-    def add_matched_to(indict, level):
-        """Add information to instance copy of resource dict that indicates
-        at which level (resource, resource group, etc.) in the resource dict a
-        GRACC entry was matched.
-
-        For example, if we're matching the GRACC record to the resource dict
-        Resource, this will add "Resource" as a value to the "OIM_Match" key
-
-        Returns the dictionary indict with the added OIM_Match: value pair."""
-        indict['OIM_Match'] = level
-        return indict
-
-    @staticmethod
-    def add_matched_from(indict, level):
-        """Similar to add_matched_to, this adds information to the instance
-         copy of resource dict as to what field in the GRACC record was used
-         to match.
-
-         For example, if we use the Host_description from the GRACC record
-         and match that to the Resource in the resource dict, this will set the
-         value of OIM_Match to "Host_description-Resource"
-
-         Returns the dictionary indict with the amended OIM_Match: value pair"""
-        indict['OIM_Match'] = '{0}-{1}'.format(level, indict['OIM_Match'])
-        return indict
-
+    @add_matched_to('Resource')
     def get_information_by_resource(self, resourcename):
         """Gets the relevant information from the parsed OIM XML file based on
         the Resource Name.  Meant to be called after OIMTopology.parse().
@@ -262,10 +264,11 @@ class OIMTopology(object):
 
         for rname, rdict in self.resourcedict.iteritems():
             if rname.lower() == resourcename.lower():
-                return self.add_matched_to(rdict, 'Resource')
+                return rdict
         else:
             return {}
 
+    @add_matched_to('FQDN')
     def get_information_by_fqdn(self, fqdn):
         """Gets the relevant information from the parsed OIM XML file based on
         the FQDN.  Meant to be called after OIMTopology.parse().
@@ -283,10 +286,11 @@ class OIMTopology(object):
 
         for resourcename, rdict in self.resourcedict.iteritems():
             if 'OIM_FQDN' in rdict and rdict['OIM_FQDN'].lower() == fqdn.lower():
-                return self.add_matched_to(rdict, 'FQDN')
+                return rdict
         else:
             return {}
 
+    @add_matched_to('Site')
     def get_information_by_site(self, sitename):
         """Gets the relevant information from the parsed OIM XML file based on
         the Site Name.  Meant to be called after OIMTopology.parse().
@@ -302,16 +306,13 @@ class OIMTopology(object):
         if not self.have_info:
             return {}
 
-        returndict = {}
         for resourcename, rdict in self.resourcedict.iteritems():
             if 'OIM_Site' in rdict and rdict['OIM_Site'].lower() == sitename.lower():
-                returndict['OIM_Site'] = rdict['OIM_Site']
-                returndict['OIM_Facility'] = rdict['OIM_Facility']
-        if returndict:
-            return self.add_matched_to(returndict, 'Site')
+                return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility')}
         else:
             return {}
 
+    @add_matched_to('ResourceGroup')
     def get_information_by_resourcegroup(self, rgname):
         """Gets the relevant information from the parsed OIM XML file based on
         the Resource Group Name.  Meant to be called after OIMTopology.parse().
@@ -327,18 +328,14 @@ class OIMTopology(object):
         if not self.have_info:
             return {}
 
-        returndict = {}
         for resourcename, rdict in self.resourcedict.iteritems():
             if 'OIM_ResourceGroup' in rdict and \
                             rdict['OIM_ResourceGroup'].lower() == rgname.lower():
-                returndict['OIM_Site'] = rdict['OIM_Site']
-                returndict['OIM_Facility'] = rdict['OIM_Facility']
-                returndict['OIM_ResourceGroup'] = rdict['OIM_ResourceGroup']
-        if returndict:
-            return self.add_matched_to(returndict, 'ResourceGroup')
+                return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility', 'OIM_ResourceGroup')}
         else:
             return {}
 
+    @add_matched_from('Host_description')
     def check_hostdescription(self, doc):
         """Matches host description to resource name, site name, or resource
         group name (in that order)
@@ -353,18 +350,16 @@ class OIMTopology(object):
         # if that fails, to resource group
         # if that fails, return {}
 
-        returndict = self.get_information_by_resource(doc['Host_description'])
-        if not returndict:
-            returndict = self.get_information_by_site(doc['Host_description'])
-        if not returndict:
-            returndict = \
-                self.get_information_by_resourcegroup(doc['Host_description'])
-
-        if returndict:
-            return self.add_matched_from(returndict, 'Host_description')
+        testfuncs = (self.get_information_by_resource,
+                     self.get_information_by_site,
+                     self.get_information_by_resourcegroup)
+        for test in testfuncs:
+            returndict = test(doc['Host_description'])
+            if returndict: return returndict
         else:
             return {}
 
+    @add_matched_from('ProbeName')
     def check_probe(self, doc):
         """Gets information from OIM based on the probe name passed in
 
@@ -377,12 +372,11 @@ class OIMTopology(object):
         probe_fqdn_check = self.probe_exp.match(doc['ProbeName'])
         if probe_fqdn_check:
             probe_fqdn = probe_fqdn_check.group(1)
-            returndict = self.get_information_by_fqdn(probe_fqdn)
-            if returndict:
-                return self.add_matched_from(returndict, 'ProbeName')
+            return self.get_information_by_fqdn(probe_fqdn)
         else:
             return {}
 
+    @add_matched_from('SiteName')
     def check_site_to_resource(self, doc):
         """Note:  This matches on Gracc SiteName = OIM Resource Name!
 
@@ -392,11 +386,7 @@ class OIMTopology(object):
         Returns a dictionary with the pertinent OIM Topology info, or a blank
          dictionary if a match was not found
         """
-        returndict = self.get_information_by_resource(doc['SiteName'])
-        if returndict:
-            return self.add_matched_from(returndict, 'SiteName')
-        else:
-            return {}
+        return self.get_information_by_resource(doc['SiteName'])
 
     @staticmethod
     def check_VO(doc, rdict):
