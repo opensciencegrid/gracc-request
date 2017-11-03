@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.8.0
+Version:        3.8.1
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,10 +72,13 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Fri Nov 03 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.8.1-1
+- Bumping version to include proper setup.py
+
 * Fri Nov 03 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.8.0-1
 - Case-insensitive OIM comparisons
 
-* Fri Sep 18 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.3-1
+* Mon Sep 18 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.3-1
 - Collect CpuDuration along with user and system variants
 
 * Fri Jun 02 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.2-1
@@ -94,7 +97,7 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 - Add Field of Science to VO records
 - Add timeout to service file for rabbitmq failures
 
-* Wed Mar 30 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.4.0-1
+* Thu Mar 30 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.4.0-1
 - Remove Resource_Source and Resource_Destination from transfer summaries
 
 * Wed Feb 15 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.3.0-1
@@ -136,7 +139,7 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 * Fri Sep 23 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.1-1
 - Add OIM Topology information from OIM to summary records
 
-* Wed Sep 08 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.0-1
+* Thu Sep 08 2016 Derek Weitzel <dweitzel@cse.unl.edu> 2.0-1
 - Add Project information from OIM to summary records
 
 * Mon Aug 29 2016 Derek Weitzel <dweitzel@cse.unl.edu> 1.7-1
