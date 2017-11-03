@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.8.2
+Version:        3.9.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Fri Nov 03 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.9.0-1
+- Allow regex expression for corrections
+
 * Fri Nov 03 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.8.2-1
 - Use Host_description for OIM_Site if OIM_Site is not discovered
 
