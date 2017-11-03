@@ -1,5 +1,5 @@
 
-FROM opensciencegrid/osg-wn:3.3-el7
+FROM opensciencegrid/osg-wn:3.4-el7
 
 
 RUN curl -o /etc/yum.repos.d/djw8605-GRACC-epel-7.repo https://copr.fedorainfracloud.org/coprs/djw8605/GRACC/repo/epel-7/djw8605-GRACC-epel-7.repo

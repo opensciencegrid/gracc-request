@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.7.3
+Version:        3.8.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Fri Nov 03 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.8.0-1
+- Case-insensitive OIM comparisons
+
 * Fri Sep 18 2017 Derek Weitzel <dweitzel@cse.unl.edu> 3.7.3-1
 - Collect CpuDuration along with user and system variants
 
