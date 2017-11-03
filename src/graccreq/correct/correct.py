@@ -2,6 +2,7 @@ import logging
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 from elasticsearch.exceptions import ElasticsearchException
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ class Corrections:
     The corrections are fetched and cached when the class is instantiated. Call
     fetch_corrections() to refresh the cache.
     """
-    def __init__(self, uri, index, doc_type, match_fields, source_field, dest_field):
+    def __init__(self, uri, index, doc_type, match_fields, source_field, dest_field, regex=False):
         """
         :param str uri: base URI to Elasticsearch REST API
         :param str index: Elasticsearch index to fetch corrections from.
@@ -21,6 +22,7 @@ class Corrections:
             The field names must be the same in the document and in the lookup index.
         :param str source_field: Field name in the lookup index containing the corrected name.
         :param str dest_field: Field name in the document .
+        :param bool regex: Whether to treat the match as a regular expression
         """
         self.es_uri = uri
         self.es_index = index
@@ -28,6 +30,7 @@ class Corrections:
         self.match_fields = match_fields
         self.source_field = source_field
         self.dest_field = dest_field
+        self.regex = regex
 
         self.fetch_corrections()
 
@@ -74,8 +77,19 @@ class Corrections:
                 return
         if self.source_field not in source:
                 logger.warning('source field {} missing for correction document (id={})'.format(self.source_field,doc['_id']))
-        ## add to cache using generated key
-        self.corrections[self._key(source)] = source[self.source_field]
+
+        if self.regex:
+            # Save compiled regular expressions
+            try:
+                self.corrections[self._key(source)] = {
+                    'regex_fields': [re.compile(str(source.get(f,".*"))) for f in self.match_fields],
+                    'dest_value': source[self.source_field]
+                }
+            except re.error as re_error:
+                logger.error("Exception caught while compiling regular expression: {} (id={})".format(re_error.message, doc['_id']))
+        else:
+            ## add to cache using generated key
+            self.corrections[self._key(source)] = source[self.source_field]
 
     def correct(self, rec):
         """
@@ -93,6 +107,24 @@ class Corrections:
         key = self._key(rec)
         if key in self.corrections:
             rec[self.dest_field] = self.corrections[key]
+        elif self.regex:
+            # Now do regex
+            for key, value in self.corrections.iteritems():
+                count_correct = 0
+
+                # For each of the match fields
+                for i in range(len(self.match_fields)):
+                    # Compile the regex
+                    now_re = value['regex_fields'][i]
+                    if now_re.match(rec[self.match_fields[i]]):
+                        count_correct += 1
+
+                # If all of the match fields matched
+                if count_correct == len(self.match_fields):
+                    rec[self.dest_field] = value['dest_value']
+                    # Break out of for loop on first match
+                    break
+
         return rec
 
 
