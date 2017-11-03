@@ -117,6 +117,12 @@ class SummaryReplayer(replayer.Replayer):
         record.update(returned_doc)
         record.update(topology_doc)
         record.update(vo_doc)
+        
+        # If OIM_Site (which is used as display name) is not in the record,
+        # set it to Host_description, if that's in the record
+        if 'OIM_Site' not in record and 'Host_description' in record:
+            record['OIM_Site'] = record['Host_description']
+        
         return record
         
     def _queryElasticsearch(self, from_date, to_date, query):
