@@ -66,7 +66,8 @@ class SummaryReplayer(replayer.Replayer):
                                                 doc_type=c['doc_type'],
                                                 match_fields=c['match_fields'],
                                                 source_field=c['source_field'],
-                                                dest_field=c['dest_field']))
+                                                dest_field=c['dest_field'],
+                                                regex=c.get('regex', False)))
         
     def run(self):
         
