@@ -34,6 +34,7 @@ doc_type = 'host_description_regex'
 match_fields = ['Host_description']
 source_field = 'CorrectedHostDescription'
 dest_field = 'OIM_Site'
+regex = true
 
 [OIM_URLs]
 voinfo = 'https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name'
