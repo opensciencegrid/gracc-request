@@ -49,7 +49,7 @@ The Elasticsearch document for the above configuration could be:
       }
     }
 
-In the above example config and document, the correction would look for records which have a `ProjectName == "osg.mab"``, and set the new ProjectName to "mab".
+In the above example config and document, the correction would look for records which have a `ProjectName == "osg.mab"`, and set the new ProjectName to "mab".
 
 ### Regular expression matches
 
