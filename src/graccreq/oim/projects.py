@@ -53,7 +53,7 @@ class OIMProjects(object):
         """
         # Well this is easy!
         if 'ProjectName' in doc and doc['ProjectName'].lower() in self.dict_name:
-            return self.dict_name[doc['ProjectName']]
+            return self.dict_name[doc['ProjectName'].lower()]
         else:
             return {}
         
