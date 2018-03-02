@@ -17,4 +17,12 @@ class TestOIMProjects(unittest.TestCase):
         self.assertEqual(stuff["OIM_FieldOfScience"], 'High Energy Physics')
         
         return True
+    
+    def test_caseless(self):
+
+        project = projects.OIMProjects()
+        stuff = project.parseDoc({'ProjectName': 'des'})
+        self.assertEqual(stuff["OIM_Organization"], "Fermilab")
+
+        return True
         

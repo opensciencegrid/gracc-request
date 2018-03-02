@@ -41,7 +41,7 @@ class OIMProjects(object):
                 new_dict[newtag] = ele.text
             # Here, make 'Name' 'OIM_Name'
             if 'OIM_Name' in new_dict:
-                self.dict_name[new_dict['OIM_Name']] = new_dict
+                self.dict_name[new_dict['OIM_Name'].lower()] = new_dict
                 del new_dict['OIM_Name']
         
     def parseDoc(self, doc):
@@ -52,8 +52,8 @@ class OIMProjects(object):
         :return dict: A new dictionary that has attributes that should be appended to the doc
         """
         # Well this is easy!
-        if 'ProjectName' in doc and doc['ProjectName'] in self.dict_name:
-            return self.dict_name[doc['ProjectName']]
+        if 'ProjectName' in doc and doc['ProjectName'].lower() in self.dict_name:
+            return self.dict_name[doc['ProjectName'].lower()]
         else:
             return {}
         
