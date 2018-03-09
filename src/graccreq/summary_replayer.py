@@ -141,7 +141,7 @@ class SummaryReplayer(replayer.Replayer):
         s = s.query('bool', must=[Q('match', _type=self._config['ElasticSearch']['raw_type'])])
         
         # Fill in the unique terms and metrics
-        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
+        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["GPUs", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
         metrics = [["WallDuration", 0], ["CpuDuration_user", 0], ["CpuDuration_system", 0], ["CoreHours", 0], ["Njobs", 1], ["CpuDuration", 0]]
 
         # If the terms are missing, set as "N/A"
