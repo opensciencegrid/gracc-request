@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 
 class OIMProjects(object):
     
-    oim_url = "http://myosg.grid.iu.edu/miscproject/xml?count_sg_1&count_active=on&count_enabled=on"
+    oim_url = "https://topology.openhtc.org/miscproject/xml?count_sg_1&count_active=on&count_enabled=on"
     
     wanted_attributes = ['Name', 'PIName', 'Organization', 'Department', 'FieldOfScience']
     
