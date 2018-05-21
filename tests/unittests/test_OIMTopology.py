@@ -29,7 +29,7 @@ class BasicOIMTopologyTests(unittest.TestCase):
         self.assertEqual(testdict['OIM_Site'], 'AGLT2')
         self.assertEqual(testdict['OIM_ResourceGroup'], 'AGLT2')
         self.assertEqual(testdict['OIM_Resource'],'AGLT2_SL6')
-        self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.21)
+        self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.69)
         self.assertEqual(testdict['OIM_Match'], 'Resource')
         return True
 
