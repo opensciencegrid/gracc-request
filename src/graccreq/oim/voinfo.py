@@ -12,7 +12,7 @@ class OIMVOInfo(object):
     Class to obtain and store VO info from OIM
     """
 
-    oim_url = "https://myosg.grid.iu.edu/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
+    oim_url = "https://my.opensciencegrid.org/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
 
     # Put any non-nested element before the last item in this list.  The last
     # item is a dict that holds all nested elements and the structure
@@ -38,8 +38,11 @@ class OIMVOInfo(object):
         Download VO info from OIM
         :return file oim_xml: File-like object with OIM VO info in XML format 
         """
+        header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36' }
+
         try:
-            oim_xml = urllib2.urlopen(self.oim_url)
+            req = urllib2.Request(self.oim_url, headers=header)
+            oim_xml = urllib2.urlopen(req)
             logging.info('Downloaded OIM VO info')
         except (urllib2.HTTPError, urllib2.URLError) as e:
             logging.error(e)

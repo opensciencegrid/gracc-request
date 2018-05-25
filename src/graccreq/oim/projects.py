@@ -3,7 +3,7 @@ import xml.etree.ElementTree as ET
 
 class OIMProjects(object):
     
-    oim_url = "http://myosg.grid.iu.edu/miscproject/xml?count_sg_1&count_active=on&count_enabled=on"
+    oim_url = "https://my.opensciencegrid.org/miscproject/xml?count_sg_1&count_active=on&count_enabled=on"
     
     wanted_attributes = ['Name', 'PIName', 'Organization', 'Department', 'FieldOfScience']
     
@@ -18,7 +18,9 @@ class OIMProjects(object):
             self.oim_url = url
 
         # Get the Project information
-        oim_xml = urllib2.urlopen(self.oim_url)
+        header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36' }
+        req = urllib2.Request(self.oim_url, headers=header)
+        oim_xml = urllib2.urlopen(req)
         self._processProjects(oim_xml)
         
         
