@@ -1,5 +1,5 @@
 Name:           gracc-request
-Version:        3.11.0
+Version:        3.12.0
 Release:        1%{?dist}
 Summary:        GRACC Listener for Raw and Summary Records
 
@@ -72,6 +72,9 @@ install -m 0744 config/graccreq.service $RPM_BUILD_ROOT/%{_unitdir}/
 
 
 %changelog
+* Fri May 25 2018 Derek Weitzel <dweitzel@cse.unl.edu> 3.12.0-1
+- Update topology URLs to my.opensciencegrid.org
+
 * Fri Mar 09 2018 Derek Weitzel <dweitzel@cse.unl.edu> 3.11.0-1
 - Add GPU summarizing
 
