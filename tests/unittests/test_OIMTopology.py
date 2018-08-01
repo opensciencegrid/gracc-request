@@ -24,12 +24,12 @@ class BasicOIMTopologyTests(unittest.TestCase):
 
     def test_resource(self):
         """OIMTopology match by gracc SiteName to topology resource"""
-        testdict = self.topology.get_information_by_resource('AGLT2_SL6')
+        testdict = self.topology.get_information_by_resource('AGLT2_CE_2')
         self.assertEqual(testdict['OIM_Facility'], 'University of Michigan')
         self.assertEqual(testdict['OIM_Site'], 'AGLT2')
         self.assertEqual(testdict['OIM_ResourceGroup'], 'AGLT2')
-        self.assertEqual(testdict['OIM_Resource'],'AGLT2_SL6')
-        self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.69)
+        self.assertEqual(testdict['OIM_Resource'],'AGLT2_CE_2')
+        self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.21)
         self.assertEqual(testdict['OIM_Match'], 'Resource')
         return True
 
@@ -42,43 +42,43 @@ class BasicOIMTopologyTests(unittest.TestCase):
 class GRACCDictTests(BasicOIMTopologyTests):
     @classmethod
     def setUpClass(cls):
-        cls.testdoc_op = {'SiteName': 'AGLT2_SL6', 'VOName': 'Fermilab',
+        cls.testdoc_op = {'SiteName': 'AGLT2_CE_2', 'VOName': 'Fermilab',
                            'ProbeName': 'condor:gate02.grid.umich.edu'}
-        cls.testdoc_ded = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+        cls.testdoc_ded = {'SiteName': 'AGLT2_CE_2', 'VOName': 'ATLAS',
                             'ProbeName': 'condor:gate02.grid.umich.edu'}
-        cls.testdoc_fail_probe = {'SiteName': 'AGLT2_SL6',
+        cls.testdoc_fail_probe = {'SiteName': 'AGLT2_CE_2',
                                    'VOName': 'Fermilab',
                                    'ProbeName':
                                        'condor:gate02.grid.umich.edu1231231'}
-        cls.testdoc_fail_probe_case_sensitive = {'SiteName': 'aglt2_SL6',
+        cls.testdoc_fail_probe_case_sensitive = {'SiteName': 'aglt2_ce_2',
                                    'VOName': 'Fermilab',
                                    'ProbeName':
                                        'condor:gate02.grid.umich.edu1231231'}
 
-        cls.testdoc_noprobe = {'SiteName': 'AGLT2_SL6',
+        cls.testdoc_noprobe = {'SiteName': 'AGLT2_CE_2',
                                    'VOName': 'Fermilab'}
         cls.testdoc_nositeorprobe = {'VOName': 'Fermilab'}
-        cls.testdoc_no_vo = {'SiteName': 'AGLT2_SL6',
+        cls.testdoc_no_vo = {'SiteName': 'AGLT2_CE_2',
                                    'ProbeName':
                                        'condor:gate02.grid.umich.edu1231231'}
-        cls.testdoc_fail = {'SiteName': 'AGLT2_SL6123123123',
+        cls.testdoc_fail = {'SiteName': 'AGLT2_CE_2123123123',
                              'VOName': 'Fermilab',
                              'ProbeName':
                                  'condor:gate02.grid.umich.edu1231231'}
-        cls.testdoc_payload_suc = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+        cls.testdoc_payload_suc = {'SiteName': 'AGLT2_CE_2', 'VOName': 'ATLAS',
                                    'ProbeName': 'condor:gate02.grid.umich.edu',
                                    'Host_description': 'BNL_ATLAS_1',
                                    'ResourceType': 'Payload'}
-        cls.testdoc_payload_site = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+        cls.testdoc_payload_site = {'SiteName': 'AGLT2_CE_2', 'VOName': 'ATLAS',
                                     'Host_description': 'UConn-OSG',
                                     'ResourceType': 'Payload'}
-        cls.testdoc_payload_rg = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+        cls.testdoc_payload_rg = {'SiteName': 'AGLT2_CE_2', 'VOName': 'ATLAS',
                                   'Host_description': 'Hyak',
                                   'ResourceType': 'Payload'}
-        cls.testdoc_case_sensitive = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+        cls.testdoc_case_sensitive = {'SiteName': 'AGLT2_CE_2', 'VOName': 'ATLAS',
                                   'Host_description': 'hYaK',
                                   'ResourceType': 'Payload'}
-        cls.testdoc_payload_fail = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
+        cls.testdoc_payload_fail = {'SiteName': 'AGLT2_CE_2', 'VOName': 'ATLAS',
                                     'Host_description': 'GPGrid12345',
                                     'ResourceType': 'Payload'}
 
@@ -140,8 +140,8 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(fail_probe['OIM_Facility'], 'University of Michigan')
         self.assertEqual(fail_probe['OIM_Site'], 'AGLT2')
         self.assertEqual(fail_probe['OIM_ResourceGroup'], 'AGLT2')
-        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
-        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
         self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
         self.assertEqual(fail_probe['OIM_Match'], 'SiteName-Resource')
         return True
@@ -155,8 +155,8 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(fail_probe['OIM_Facility'], 'University of Michigan')
         self.assertEqual(fail_probe['OIM_Site'], 'AGLT2')
         self.assertEqual(fail_probe['OIM_ResourceGroup'], 'AGLT2')
-        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
-        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
         self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
         self.assertEqual(fail_probe['OIM_Match'], 'SiteName-Resource')
         return True
@@ -175,8 +175,8 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertEqual(fail_probe['OIM_Facility'], 'University of Michigan')
         self.assertEqual(fail_probe['OIM_Site'], 'AGLT2')
         self.assertEqual(fail_probe['OIM_ResourceGroup'], 'AGLT2')
-        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
-        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertNotEqual(fail_probe['OIM_Resource'],'AGLT2_SL6')
+        self.assertEqual(fail_probe['OIM_Resource'],'AGLT2_CE_2')
         self.assertEqual(fail_probe['OIM_UsageModel'], 'OPPORTUNISTIC')
         self.assertEqual(fail_probe['OIM_Match'], 'SiteName-Resource')
         return True
