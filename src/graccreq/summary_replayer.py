@@ -66,7 +66,8 @@ class SummaryReplayer(replayer.Replayer):
                                                 doc_type=c['doc_type'],
                                                 match_fields=c['match_fields'],
                                                 source_field=c['source_field'],
-                                                dest_field=c['dest_field']))
+                                                dest_field=c['dest_field'],
+                                                regex=c.get('regex', False)))
         
     def run(self):
         
@@ -117,6 +118,12 @@ class SummaryReplayer(replayer.Replayer):
         record.update(returned_doc)
         record.update(topology_doc)
         record.update(vo_doc)
+        
+        # If OIM_Site (which is used as display name) is not in the record,
+        # set it to Host_description, if that's in the record
+        if 'OIM_Site' not in record and 'Host_description' in record:
+            record['OIM_Site'] = record['Host_description']
+        
         return record
         
     def _queryElasticsearch(self, from_date, to_date, query):
@@ -134,7 +141,7 @@ class SummaryReplayer(replayer.Replayer):
         s = s.query('bool', must=[Q('match', _type=self._config['ElasticSearch']['raw_type'])])
         
         # Fill in the unique terms and metrics
-        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
+        unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["GPUs", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
         metrics = [["WallDuration", 0], ["CpuDuration_user", 0], ["CpuDuration_system", 0], ["CoreHours", 0], ["Njobs", 1], ["CpuDuration", 0]]
 
         # If the terms are missing, set as "N/A"
