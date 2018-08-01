@@ -2,6 +2,7 @@
 
 import unittest
 import os
+import toml
 
 from graccreq.oim import OIMTopology
 
@@ -9,7 +10,11 @@ from graccreq.oim import OIMTopology
 class BasicOIMTopologyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.topology = OIMTopology.OIMTopology()
+        # Read in the test config file
+        configuration = "tests/gracc-request-test.toml"
+        with open(configuration, 'r') as config_file:
+            config = toml.loads(config_file.read())
+        cls.topology = OIMTopology.OIMTopology(config['OIM_URLs'].get('oimtopology'))
 
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
