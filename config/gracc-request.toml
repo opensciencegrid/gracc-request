@@ -38,5 +38,5 @@ regex = true
 
 [OIM_URLs]
 voinfo = 'https://my.opensciencegrid.org/vosummary/xml?active=on&active_value=1&oasis_value=1'
-oimtopology = 'https://my.opensciencegrid.org/rgsummary/xml?facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on&active=on&active_value=1&disable_value=1'
+oimtopology = 'https://my.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on&active=on&active_value=1&disable_value=1'
 projects = 'https://my.opensciencegrid.org/miscproject/xml'
