@@ -9,7 +9,7 @@ class TestOIMProjects(unittest.TestCase):
         
         project = projects.OIMProjects()
         
-        stuff = project.parseDoc({'ProjectName': 'atlas-org-unm'})
+        stuff = project.parseDoc({'ProjectName': 'atlas.org.unm'})
         
         self.assertEqual(stuff["OIM_PIName"], "Robert William Gardner Jr")
         self.assertEqual(stuff["OIM_Organization"], "University of New Mexico")
@@ -25,4 +25,6 @@ class TestOIMProjects(unittest.TestCase):
         self.assertEqual(stuff["OIM_Organization"], "Fermilab")
 
         return True
-        
+
+if __name__ == '__main__':
+    unittest.main()
