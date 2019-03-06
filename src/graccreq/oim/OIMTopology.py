@@ -43,7 +43,7 @@ def add_matched_from(level):
 
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
-    oim_url = "https://my.opensciencegrid.org/rgsummary/xml?summary_attrs_showhierarchy=on&summary_attrs_showwlcg=on&summary_attrs_showservice=on&summary_attrs_showfqdn=on&summary_attrs_showvoownership=on&summary_attrs_showcontact=on&gip_status_attrs_showtestresults=on&downtime_attrs_showpast=&account_type=cumulative_hours&ce_account_type=gip_vo&se_account_type=vo_transfer_volume&bdiitree_type=total_jobs&bdii_object=service&bdii_server=is-osg&all_resources=on&facility_sel%5B%5D=10009&gridtype=on&gridtype_1=on&active=on&active_value=1&disable_value=1"
+    oim_url = "https://my.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on"
 
     def __init__(self, url=None):
         if url is not None:
