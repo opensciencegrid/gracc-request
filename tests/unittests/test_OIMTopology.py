@@ -24,12 +24,12 @@ class BasicOIMTopologyTests(unittest.TestCase):
 
     def test_resource(self):
         """OIMTopology match by gracc SiteName to topology resource"""
-        testdict = self.topology.get_information_by_resource('AGLT2_SL6')
+        testdict = self.topology.get_information_by_resource('AGLT2_CE_2')
         self.assertEqual(testdict['OIM_Facility'], 'University of Michigan')
         self.assertEqual(testdict['OIM_Site'], 'AGLT2')
         self.assertEqual(testdict['OIM_ResourceGroup'], 'AGLT2')
-        self.assertEqual(testdict['OIM_Resource'],'AGLT2_SL6')
-        self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.69)
+        self.assertEqual(testdict['OIM_Resource'],'AGLT2_CE_2')
+        self.assertEqual(testdict['OIM_WLCGAPELNormalFactor'], 10.96)
         self.assertEqual(testdict['OIM_Match'], 'Resource')
         return True
 
@@ -73,10 +73,10 @@ class GRACCDictTests(BasicOIMTopologyTests):
                                     'Host_description': 'UConn-OSG',
                                     'ResourceType': 'Payload'}
         cls.testdoc_payload_rg = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
-                                  'Host_description': 'Hyak',
+                                  'Host_description': 'Nebraska',
                                   'ResourceType': 'Payload'}
         cls.testdoc_case_sensitive = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
-                                  'Host_description': 'hYaK',
+                                  'Host_description': 'nEbrAsKa',
                                   'ResourceType': 'Payload'}
         cls.testdoc_payload_fail = {'SiteName': 'AGLT2_SL6', 'VOName': 'ATLAS',
                                     'Host_description': 'GPGrid12345',
@@ -198,7 +198,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         resource"""
         pg = self.topology.generate_dict_for_gracc(self.testdoc_payload_suc)
         self.assertEqual(pg['OIM_Facility'], 'Brookhaven National Laboratory')
-        self.assertEqual(pg['OIM_Site'], 'Brookhaven ATLAS Tier1')
+        self.assertEqual(pg['OIM_Site'], 'BNL ATLAS Tier1')
         self.assertEqual(pg['OIM_ResourceGroup'], 'BNL-ATLAS')
         self.assertEqual(pg['OIM_Resource'], 'BNL_ATLAS_1')
         self.assertEqual(pg['OIM_UsageModel'], 'DEDICATED')
@@ -223,14 +223,14 @@ class GRACCDictTests(BasicOIMTopologyTests):
         """Payload record - should be successful match for Hyak Resource
         Group"""
         rg = self.topology.generate_dict_for_gracc(self.testdoc_payload_rg)
-        self.assertEqual(rg['OIM_Facility'], 'University of Washington')
-        self.assertEqual(rg['OIM_Site'], 'UW-IT')
-        self.assertEqual(rg['OIM_ResourceGroup'], 'Hyak')
+        self.assertEqual(rg['OIM_Facility'], 'University of Nebraska')
+        self.assertEqual(rg['OIM_Site'], 'Nebraska-CMS')
+        self.assertEqual(rg['OIM_ResourceGroup'], 'Nebraska')
         res = rg.get('OIM_Resource')
         um = rg.get('OIM_UsageModel')
-        self.assertFalse(res)
-        self.assertFalse(um)
-        self.assertEqual(rg['OIM_Match'], 'Host_description-ResourceGroup')
+        self.assertTrue(res)
+        self.assertTrue(um)
+        self.assertEqual(rg['OIM_Match'], 'Host_description-Resource')
         return True
 
     def test_payload_case_sensitive(self):
@@ -238,14 +238,14 @@ class GRACCDictTests(BasicOIMTopologyTests):
         in the test doc - should be successful match for Hyak Resource
         Group"""
         rg = self.topology.generate_dict_for_gracc(self.testdoc_case_sensitive)
-        self.assertEqual(rg['OIM_Facility'], 'University of Washington')
-        self.assertEqual(rg['OIM_Site'], 'UW-IT')
-        self.assertEqual(rg['OIM_ResourceGroup'], 'Hyak')
+        self.assertEqual(rg['OIM_Facility'], 'University of Nebraska')
+        self.assertEqual(rg['OIM_Site'], 'Nebraska-CMS')
+        self.assertEqual(rg['OIM_ResourceGroup'], 'Nebraska')
         res = rg.get('OIM_Resource')
         um = rg.get('OIM_UsageModel')
-        self.assertFalse(res)
-        self.assertFalse(um)
-        self.assertEqual(rg['OIM_Match'], 'Host_description-ResourceGroup')
+        self.assertTrue(res)
+        self.assertTrue(um)
+        self.assertEqual(rg['OIM_Match'], 'Host_description-Resource')
         return True
     
     def test_payload_fail(self):
