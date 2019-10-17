@@ -10,7 +10,7 @@ import replayer
 import dateutil
 import copy
 import datetime
-from graccreq.oim import projects, OIMTopology, voinfo
+from graccreq.oim import projects, OIMTopology, voinfo, nsfscience
 import StringIO
 from graccreq.correct import Corrections
 
@@ -57,6 +57,9 @@ class SummaryReplayer(replayer.Replayer):
 
         # Initialize the OIM VO information
         self.oimvoinfo = voinfo.OIMVOInfo(url=self._config['OIM_URLs'].get('voinfo'))
+
+        # Intialize the OIM NSF Information
+        self.nsfscience = nsfscience.NSFScience(url=self._config['OIM_URLs'].get('nsfscience'))
 
         # Initiatlize name corrections
         self.corrections = []
@@ -118,6 +121,9 @@ class SummaryReplayer(replayer.Replayer):
         record.update(returned_doc)
         record.update(topology_doc)
         record.update(vo_doc)
+
+        nsf_doc = self.nsfscience.parseDoc(record)
+        record.update(nsf_doc)
         
         # If OIM_Site (which is used as display name) is not in the record,
         # set it to Host_description, if that's in the record
