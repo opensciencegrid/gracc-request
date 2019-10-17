@@ -26,7 +26,7 @@ class NSFScience(object):
 
         self.mapping_dict = {}
         for row in parsed_csv:
-            self.mapping_dict[row[0]] = row[1]
+            self.mapping_dict[row[0].lower()] = row[1]
 
 
     def parseDoc(self, record):
@@ -37,7 +37,7 @@ class NSFScience(object):
         :returns: Minimal dict with attributes to add
         """
         if 'OIM_FieldOfScience' in record:
-            if record['OIM_FieldOfScience'] in self.mapping_dict:
+            if record['OIM_FieldOfScience'].lower() in self.mapping_dict:
                 return {'OIM_NSFFieldOfScience': self.mapping_dict[record['OIM_FieldOfScience']]}
 
         return {}
