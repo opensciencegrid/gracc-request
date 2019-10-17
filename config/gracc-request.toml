@@ -40,4 +40,4 @@ regex = true
 voinfo = 'https://my.opensciencegrid.org/vosummary/xml?active=on&active_value=1&oasis_value=1'
 oimtopology = 'https://my.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on'
 projects = 'https://my.opensciencegrid.org/miscproject/xml'
-nsfscience = 'https://my.opensciencegrid.org/nsf-science-mapping.csv'
+nsfscience = 'https://my.opensciencegrid.org/nsfscience/csv'
