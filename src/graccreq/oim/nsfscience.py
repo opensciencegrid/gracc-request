@@ -38,7 +38,7 @@ class NSFScience(object):
         """
         if 'OIM_FieldOfScience' in record:
             if record['OIM_FieldOfScience'].lower() in self.mapping_dict:
-                return {'OIM_NSFFieldOfScience': self.mapping_dict[record['OIM_FieldOfScience']]}
+                return {'OIM_NSFFieldOfScience': self.mapping_dict[record['OIM_FieldOfScience'].lower()]}
 
         return {}
 
