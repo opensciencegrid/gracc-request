@@ -36,7 +36,7 @@ class OverMind:
         # Start up the pool processes
         self._pool = Pool(processes=4)
         self.createConnection()
-        self._chan.basic_consume(self._receiveMsg, 'gracc.osg.requests')
+        self._chan.basic_consume(self._receiveMsg, self._config["AMQP"]['queue'])
         
         # The library gives us an event loop built-in, so lets use it!
         # This program only responds to messages on the rabbitmq, so no
