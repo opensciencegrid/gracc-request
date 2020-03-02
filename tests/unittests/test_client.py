@@ -29,8 +29,8 @@ class TestClient(unittest.TestCase):
         # Set the timerange
         start_time = datetime(2016, 6, 3)
         end_time = start_time + timedelta(days=31)
-        print start_time
-        print end_time
+        print(start_time)
+        print(end_time)
         status = {'num_messages': 0}
 
         def getMessage(msg):
@@ -44,8 +44,8 @@ class TestClient(unittest.TestCase):
         # Set the timerange
         start_time = datetime(2016, 6, 1)
         end_time = start_time + timedelta(days=31)
-        print start_time
-        print end_time
+        print(start_time)
+        print(end_time)
         status = {'num_messages': 0}
 
         def getMessage(msg):

@@ -109,7 +109,7 @@ class Corrections:
             rec[self.dest_field] = self.corrections[key]
         elif self.regex:
             # Now do regex
-            for key, value in self.corrections.iteritems():
+            for key, value in self.corrections.items():
                 count_correct = 0
 
                 # For each of the match fields

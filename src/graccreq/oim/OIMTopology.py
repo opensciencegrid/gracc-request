@@ -1,6 +1,6 @@
 import xml.etree.ElementTree as ET
 from datetime import timedelta, date
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import re
 import time
 import os.path
@@ -115,8 +115,8 @@ class OIMTopology(object):
     def get_file_from_OIM(self):
         """Gets a new file from OIM"""
         try:
-            oim_xml = urllib2.urlopen(self.oim_url)
-        except (urllib2.HTTPError, urllib2.URLError) as e:
+            oim_xml = urllib.request.urlopen(self.oim_url)
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
             logging.error(e)
             return None
         return oim_xml
@@ -190,8 +190,8 @@ class OIMTopology(object):
                        {"Element": resource_elt, "Dict": r_pathdictionary}
                    }
 
-        for level, info in eltdict.iteritems():
-            for key, path in info["Dict"].iteritems():
+        for level, info in eltdict.items():
+            for key, path in info["Dict"].items():
                 try:
                     if key == 'OIM_WLCGAPELNormalFactor':
                         returndict[key] = float(info["Element"].find(path).text)
@@ -262,7 +262,7 @@ class OIMTopology(object):
         if not self.have_info:
             return {}
 
-        for rname, rdict in self.resourcedict.iteritems():
+        for rname, rdict in self.resourcedict.items():
             if rname.lower() == resourcename.lower():
                 return rdict
         else:
@@ -284,7 +284,7 @@ class OIMTopology(object):
         if not self.have_info:
             return {}
 
-        for resourcename, rdict in self.resourcedict.iteritems():
+        for resourcename, rdict in self.resourcedict.items():
             if 'OIM_FQDN' in rdict and rdict['OIM_FQDN'].lower() == fqdn.lower():
                 return rdict
         else:
@@ -306,7 +306,7 @@ class OIMTopology(object):
         if not self.have_info:
             return {}
 
-        for resourcename, rdict in self.resourcedict.iteritems():
+        for resourcename, rdict in self.resourcedict.items():
             if 'OIM_Site' in rdict and rdict['OIM_Site'].lower() == sitename.lower():
                 return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility')}
         else:
@@ -328,7 +328,7 @@ class OIMTopology(object):
         if not self.have_info:
             return {}
 
-        for resourcename, rdict in self.resourcedict.iteritems():
+        for resourcename, rdict in self.resourcedict.items():
             if 'OIM_ResourceGroup' in rdict and \
                             rdict['OIM_ResourceGroup'].lower() == rgname.lower():
                 return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility', 'OIM_ResourceGroup')}
@@ -399,7 +399,7 @@ class OIMTopology(object):
             voname = doc['VOName']
             # Parse VOOwnership to determine opportunistic vs. dedicated
             if voname.lower() in [elt.lower()
-                                  for elt in rdict['VOOwnership'].keys()]:
+                                  for elt in list(rdict['VOOwnership'].keys())]:
                 return 'DEDICATED'
             else:
                 return 'OPPORTUNISTIC'
@@ -462,7 +462,7 @@ def main():
     topology = OIMTopology()
 
     for i in range(50):
-        print topology.generate_dict_for_gracc(testdoc)
+        print(topology.generate_dict_for_gracc(testdoc))
 
 
 if __name__ == '__main__':

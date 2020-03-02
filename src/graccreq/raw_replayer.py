@@ -5,7 +5,7 @@ import logging
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import traceback
-import replayer
+from . import replayer
 
 def RawReplayerFactory(msg, parameters, config):
     # Create the raw replayer class
@@ -13,7 +13,7 @@ def RawReplayerFactory(msg, parameters, config):
     try:
         replayer = RawReplayer(msg, parameters, config)
         replayer.run()
-    except Exception, e:
+    except Exception as e:
         logging.error(traceback.format_exc())
 
 
@@ -35,7 +35,7 @@ class RawReplayer(replayer.Replayer):
         try:
             for record in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
                 self.sendMessage(json.dumps(record.to_dict()))
-        except Exception, e:
+        except Exception as e:
             logging.error("Exception caught in query ES: %s" % str(e))
             
         

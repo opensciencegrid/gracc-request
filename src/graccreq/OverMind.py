@@ -3,9 +3,9 @@ from multiprocessing import Pool, TimeoutError
 import json
 import pika
 import sys
-from raw_replayer import RawReplayerFactory
-from summary_replayer import SummaryReplayerFactory
-from transfer_summary import TransferSummaryFactory
+from .raw_replayer import RawReplayerFactory
+from .summary_replayer import SummaryReplayerFactory
+from .transfer_summary import TransferSummaryFactory
 import toml
 import argparse
 import logging
@@ -71,7 +71,7 @@ class OverMind:
         
         try:
             msg_body = json.loads(body)
-        except ValueError, e:
+        except ValueError as e:
             logging.warning("Unable to json parse the body of the message")
             channel.basic_ack(delivery_tag=method_frame.delivery_tag)
             return

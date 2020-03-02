@@ -3,7 +3,7 @@ Add NSF Field of Science to GRACC records
 
 """
 import csv
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 
 
@@ -21,7 +21,7 @@ class NSFScience(object):
 
 
     def _parseFields(self, url):
-        raw_csv = urllib2.urlopen(url)
+        raw_csv = urllib.request.urlopen(url)
         parsed_csv = csv.reader(raw_csv, delimiter=',')
 
         self.mapping_dict = {}
@@ -47,4 +47,4 @@ class NSFScience(object):
 if __name__ == "__main__":
     science = NSFScience(url="file:///Users/derekweitzel/git/gracc-reporter/tests/mapping-table-test.csv")
     example_dict = {'OIM_FieldOfScience': 'Computational Condensed Matter Physics'}
-    print science.parseDoc(example_dict)
+    print(science.parseDoc(example_dict))

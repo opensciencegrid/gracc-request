@@ -35,7 +35,7 @@ class TestOIMVOInfo(unittest.TestCase):
         retdoc = self.v.parse_doc(testdoc)
         self.assertEqual(retdoc['OIM_FieldOfScience'], 'Multi-Science Community')
 
-        for key in testdoc.iterkeys():
+        for key in testdoc.keys():
             if key != 'OIM_FieldOfScience':
                 self.assertEqual(testdoc[key], retdoc[key])
         return True

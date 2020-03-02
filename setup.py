@@ -16,8 +16,7 @@ setup(name='graccreq',
       'python-dateutil',
       'six',
       'toml',
-      'urllib3',
-      'wsgiref'
+      'urllib3'
       ],
       entry_points= {
             'console_scripts': [
