@@ -105,7 +105,7 @@ class Corrections:
             if field not in rec:
                 return rec
         key = self._key(rec)
-        if key in self.corrections:
+        if key in self.corrections and not self.regex:
             rec[self.dest_field] = self.corrections[key]
         elif self.regex:
             # Now do regex

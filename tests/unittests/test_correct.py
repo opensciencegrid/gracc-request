@@ -72,12 +72,32 @@ class TestCorrections(unittest.TestCase):
             'type': 'host_description_regex'
         }})
 
+        c._add_correction({'_source': {
+            'Host_description': 'SDSC\_Comet',
+            'Corrected_OIM_Site': 'COMETVCCE',
+            'type': 'host_description_regex'
+        }})
+
+        c._add_correction({'_source': {
+            'Host_description': 'TACC',
+            'Corrected_OIM_Site': 'Texas Advanced Computing Center',
+            'type': 'host_description_regex'
+        }})
+
         doc = c.correct({'Host_description': 'comet-03-11.sdsc.edu'})
         self.assertEqual(doc['OIM_Site'], "SDSC Comet")
         self.assertEqual(doc['RawOIM_Site'], "")
 
         doc = c.correct({'Host_description': 'r359.pvt.bridges.psc.edu'})
         self.assertEqual(doc['OIM_Site'], "PSC Bridges")
+        self.assertEqual(doc['RawOIM_Site'], "")
+
+        doc = c.correct({'Host_description': 'SDSC_Comet'})
+        self.assertEqual(doc['OIM_Site'], 'COMETVCCE')
+        self.assertEqual(doc['RawOIM_Site'], "")
+
+        doc = c.correct({'Host_description': 'TACC'})
+        self.assertEqual(doc['OIM_Site'], 'Texas Advanced Computing Center')
         self.assertEqual(doc['RawOIM_Site'], "")
 
         import logging
