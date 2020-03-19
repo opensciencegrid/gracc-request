@@ -70,7 +70,8 @@ class SummaryReplayer(replayer.Replayer):
                                                 match_fields=c['match_fields'],
                                                 source_field=c['source_field'],
                                                 dest_field=c['dest_field'],
-                                                regex=c.get('regex', False)))
+                                                regex=c.get('regex', False),
+                                                force_overwrite=c.get('force_overwrite', False)))
         
     def run(self):
         

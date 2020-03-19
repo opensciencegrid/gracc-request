@@ -13,7 +13,7 @@ class Corrections:
     The corrections are fetched and cached when the class is instantiated. Call
     fetch_corrections() to refresh the cache.
     """
-    def __init__(self, uri, index, doc_type, match_fields, source_field, dest_field, regex=False):
+    def __init__(self, uri, index, doc_type, match_fields, source_field, dest_field, regex=False, force_overwrite=False):
         """
         :param str uri: base URI to Elasticsearch REST API
         :param str index: Elasticsearch index to fetch corrections from.
@@ -23,6 +23,7 @@ class Corrections:
         :param str source_field: Field name in the lookup index containing the corrected name.
         :param str dest_field: Field name in the document .
         :param bool regex: Whether to treat the match as a regular expression
+        :param bool force_overwrite: If True, always set the destination field even if there is no match
         """
         self.es_uri = uri
         self.es_index = index
@@ -31,6 +32,7 @@ class Corrections:
         self.source_field = source_field
         self.dest_field = dest_field
         self.regex = regex
+        self.force_overwrite = force_overwrite
 
         self.fetch_corrections()
 
@@ -107,6 +109,8 @@ class Corrections:
         key = self._key(rec)
         if key in self.corrections and not self.regex:
             rec[self.dest_field] = self.corrections[key]
+        elif self.force_overwrite and len(self.match_fields) == 1 and not self.regex:
+            rec[self.dest_field] = rec[self.match_fields[0]]
         elif self.regex:
             # Now do regex
             for key, value in self.corrections.iteritems():
