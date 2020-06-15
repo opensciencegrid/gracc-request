@@ -85,7 +85,7 @@ class OverMind:
             
         elif msg_body['kind'] == 'summary':
             logging.debug("Received summary message, dispatching")
-            result = self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters, self._config))
+            result = self._pool.apply_async(SummaryReplayerFactory, (msg_body, self._config['AMQP']['url'], self._config))
             try:
                 result.get(1)
             except TimeoutError as te:
@@ -93,7 +93,7 @@ class OverMind:
             
         elif msg_body['kind'] == 'transfer_summary':
             logging.debug("Received transfer_summary message, dispatching")
-            result = self._pool.apply_async(TransferSummaryFactory, (msg_body, self.parameters, self._config))
+            result = self._pool.apply_async(TransferSummaryFactory, (msg_body, self._config['AMQP']['url'], self._config))
             try:
                 result.get(1)
             except TimeoutError as te:

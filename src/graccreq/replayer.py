@@ -26,7 +26,8 @@ class Replayer(object):
         
         """
         if not self.conn:
-            self.conn = pika.adapters.blocking_connection.BlockingConnection(self.parameters)
+            parameters = pika.URLParameters(self.parameters)
+            self.conn = pika.adapters.blocking_connection.BlockingConnection(parameters)
             self.chan = self.conn.channel()
             self.chan.add_on_return_callback(self.on_return)
             
