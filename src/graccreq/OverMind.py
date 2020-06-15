@@ -9,7 +9,7 @@ from .transfer_summary import TransferSummaryFactory
 import toml
 import argparse
 import logging
-
+import time
 
 class OverMind:
     """
@@ -85,11 +85,19 @@ class OverMind:
             
         elif msg_body['kind'] == 'summary':
             logging.debug("Received summary message, dispatching")
-            self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters, self._config))
+            result = self._pool.apply_async(SummaryReplayerFactory, (msg_body, self.parameters, self._config))
+            try:
+                result.get(1)
+            except TimeoutError as te:
+                pass
             
         elif msg_body['kind'] == 'transfer_summary':
             logging.debug("Received transfer_summary message, dispatching")
-            self._pool.apply_async(TransferSummaryFactory, (msg_body, self.parameters, self._config))
+            result = self._pool.apply_async(TransferSummaryFactory, (msg_body, self.parameters, self._config))
+            try:
+                result.get(1)
+            except TimeoutError as te:
+                pass
         
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         
