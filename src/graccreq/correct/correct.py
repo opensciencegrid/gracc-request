@@ -43,7 +43,8 @@ class Corrections:
         self.corrections = {}
         try:
             client = Elasticsearch(self.es_uri, timeout=300)
-            s = scan(client=client, index=self.es_index, doc_type=self.es_doc_type, scroll='10m')
+            query = {"query": {"match": {"type": self.es_doc_type}}}
+            s = scan(client=client, index=self.es_index, query=query, scroll='10m')
             for doc in s:
                 self._add_correction(doc)
         except ElasticsearchException as e:
