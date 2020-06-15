@@ -61,7 +61,7 @@ set -e
 popd
 
 sleep 60
-journalctl -u graccreq.service --no-pager -n 1000
+journalctl -u graccreq.service --no-pager -n 100
 systemctl stop graccreq.service
 sleep 20
 journalctl -u graccreq.service --no-pager -n 100

@@ -43,7 +43,7 @@ class Replayer(object):
             self.chan.basic_publish(self.msg['destination'], self.msg['routing_key'], msg,
                                  pika.BasicProperties(content_type='text/json',
                                  delivery_mode=1))
-        except Exception, e:
+        except Exception as e:
             logging.error("Exception caught in basic_publish: %s" % str(e))
             raise e
             
@@ -67,5 +67,5 @@ class Replayer(object):
             self.chan.basic_publish(self.control_exchange, self.control_key, json.dumps(control_msg),
                                  pika.BasicProperties(content_type='text/json',
                                            delivery_mode=1))
-        except Exception, e:
+        except Exception as e:
             logging.error("Exception caught in sending start msg to control channel %s: %s" % (self.control_exchange, str(e)))

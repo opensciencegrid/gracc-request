@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import logging
 import re
 from copy import deepcopy
@@ -41,10 +41,10 @@ class OIMVOInfo(object):
         header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36' }
 
         try:
-            req = urllib2.Request(self.oim_url, headers=header)
-            oim_xml = urllib2.urlopen(req)
+            req = urllib.request.Request(self.oim_url, headers=header)
+            oim_xml = urllib.request.urlopen(req)
             logging.info('Downloaded OIM VO info')
-        except (urllib2.HTTPError, urllib2.URLError) as e:
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
             logging.error(e)
             return None
         return oim_xml
@@ -90,7 +90,7 @@ class OIMVOInfo(object):
             # Look for info in XML file
             for path in xpaths:
                 # Grab whichever regex returns a match
-                m = filter(None, (pat.match(path) for pat in (pathattr, pathattr_rec)))
+                m = [_f for _f in (pat.match(path) for pat in (pathattr, pathattr_rec)) if _f]
                 assert len(m) == 1  # One or other should be a match, not both
 
                 if m:
@@ -139,4 +139,4 @@ if __name__ == '__main__':
             "ProjectName": "VERITAS",
             "OIM_FieldOfScience": "Astrophysics",
         }
-    print v.parse_doc(testdoc)
+    print(v.parse_doc(testdoc))

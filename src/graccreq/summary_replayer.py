@@ -6,12 +6,12 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 import traceback
-import replayer
+from . import replayer
 import dateutil
 import copy
 import datetime
 from graccreq.oim import projects, OIMTopology, voinfo, nsfscience
-import StringIO
+import io
 from graccreq.correct import Corrections
 
 
@@ -27,21 +27,21 @@ def SummaryReplayerFactory(msg, parameters, config):
     try:
         replayer = SummaryReplayer(msg, parameters, config)
         replayer.run()
-    except Exception, e:
+    except Exception as e:
         logging.error(traceback.format_exc())
     
     if 'General' in config and 'Profile' in config['General'] and config['General']['Profile']:
         logging.debug("Stopping profiler")
         import pstats
         pr.disable()
-        s = StringIO.StringIO()
+        s = io.StringIO()
         sortby = 'cumulative'
         ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
         ps.print_stats()
         f = open('/tmp/profile.txt', 'a')
         f.write(s.getvalue())
         f.close()
-        print s.getvalue()
+        print(s.getvalue())
         
         
 class SummaryReplayer(replayer.Replayer):
@@ -90,7 +90,7 @@ class SummaryReplayer(replayer.Replayer):
                         c.correct(record)
                     self.addProperties(record)
                     self.sendMessage(json.dumps(record))
-        except Exception, e:
+        except Exception as e:
             logging.error("Exception caught in query ES: %s" % str(e))
             logging.error(traceback.format_exc())
             raise e
@@ -197,7 +197,7 @@ class SummaryReplayer(replayer.Replayer):
         	
         
         # We only want to hold onto 1 day's worth of summaries
-        print len(response.aggregations['EndTime']['buckets'])
+        print(len(response.aggregations['EndTime']['buckets']))
         for day in response.aggregations['EndTime']['buckets']:
             data = []
             recurseBucket({"EndTime": day['key_as_string']}, day, 1, data)

@@ -6,14 +6,14 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch_dsl.query import Q
 import traceback
-import replayer
+from . import replayer
 import dateutil
 import copy
 import datetime
 from graccreq.oim import projects, OIMTopology
-import StringIO
+import io
 from graccreq.correct import Corrections
-import summary_replayer
+from . import summary_replayer
 
 
 def TransferSummaryFactory(msg, parameters, config):
@@ -28,21 +28,21 @@ def TransferSummaryFactory(msg, parameters, config):
     try:
         replayer = TransferSummary(msg, parameters, config)
         replayer.run()
-    except Exception, e:
+    except Exception as e:
         logging.error(traceback.format_exc())
     
     if 'General' in config and 'Profile' in config['General'] and config['General']['Profile']:
         logging.debug("Stopping profiler")
         import pstats
         pr.disable()
-        s = StringIO.StringIO()
+        s = io.StringIO()
         sortby = 'cumulative'
         ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
         ps.print_stats()
         f = open('/tmp/profile.txt', 'a')
         f.write(s.getvalue())
         f.close()
-        print s.getvalue()
+        print(s.getvalue())
         
         
 class TransferSummary(summary_replayer.SummaryReplayer):
@@ -122,7 +122,7 @@ class TransferSummary(summary_replayer.SummaryReplayer):
         	
         
         # We only want to hold onto 1 day's worth of summaries
-        print len(response.aggregations['StartTime']['buckets'])
+        print(len(response.aggregations['StartTime']['buckets']))
         for day in response.aggregations['StartTime']['buckets']:
             data = []
             recurseBucket({"StartTime": day['key_as_string']}, day, 1, data)

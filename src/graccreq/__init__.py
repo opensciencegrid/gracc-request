@@ -1,2 +1,2 @@
-import OverMind
-from client import Client
+from . import OverMind
+from .client import Client

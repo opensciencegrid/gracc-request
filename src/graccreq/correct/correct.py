@@ -87,7 +87,7 @@ class Corrections:
                     'dest_value': source[self.source_field]
                 }
             except re.error as re_error:
-                logger.error("Exception caught while compiling regular expression: {} (id={})".format(re_error.message, doc['_id']))
+                logger.error("Exception caught while compiling regular expression: {} (id={})".format(re_error, doc['_id']))
         else:
             ## add to cache using generated key
             self.corrections[self._key(source)] = source[self.source_field]
@@ -110,7 +110,7 @@ class Corrections:
             rec[self.dest_field] = self.corrections[key]
         elif self.regex:
             # Now do regex
-            for key, value in self.corrections.iteritems():
+            for key, value in self.corrections.items():
                 count_correct = 0
 
                 # For each of the match fields
