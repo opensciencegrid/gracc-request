@@ -10,5 +10,5 @@ RUN python setup.py install
 
 RUN install -d -m 0755 /etc/graccreq/config.d/ && install -m 0744 config/gracc-request.toml /etc/graccreq/config.d/gracc-request.toml
 
-CMD /usr/bin/graccreq
+CMD /usr/local/bin/graccreq
 
