@@ -4,6 +4,7 @@ Add NSF Field of Science to GRACC records
 """
 import csv
 import urllib.request, urllib.error, urllib.parse
+import codecs
 
 
 
@@ -22,7 +23,7 @@ class NSFScience(object):
 
     def _parseFields(self, url):
         raw_csv = urllib.request.urlopen(url)
-        parsed_csv = csv.reader(raw_csv.read().decode('utf-8'), delimiter=',')
+        parsed_csv = csv.reader(codecs.iterdecode(raw_csv, 'utf-8'), delimiter=',')
 
         self.mapping_dict = {}
         for row in parsed_csv:
