@@ -230,6 +230,6 @@ class SummaryReplayer(replayer.Replayer):
                         if value is None and term in terms_dict:
                             record[term] = terms_dict[term]
                     # Convert to iso 8601 date format
-                    record['EndTime'] = datetime.datetime.fromtimestamp(record['EndTime'] / 1000).isoformat()
+                    record['EndTime'] = datetime.datetime.utcfromtimestamp(record['EndTime']/1000).isoformat(timespec='milliseconds') + "Z"
                     yield record
 

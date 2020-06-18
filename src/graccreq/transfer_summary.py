@@ -157,5 +157,5 @@ class TransferSummary(summary_replayer.SummaryReplayer):
                         if value is None and term in terms_dict:
                             record[term] = terms_dict[term]
                     # Convert to iso 8601 date format
-                    record['StartTime'] = datetime.datetime.fromtimestamp(record['StartTime'] / 1000).isoformat()
+                    record['StartTime'] = datetime.datetime.utcfromtimestamp(ecord['StartTime']/1000).isoformat(timespec='milliseconds') + "Z"
                     yield record
