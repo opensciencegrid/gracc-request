@@ -19,6 +19,7 @@ class OverMind:
     def __init__(self, configuration):
         
         self._pool = None
+        self._running_jobs = []
         
         # Import the configuration
         self._config = {}
@@ -37,6 +38,7 @@ class OverMind:
         self._pool = Pool(processes=4)
         self.createConnection()
         self._chan.basic_consume(self._config["AMQP"]['queue'], self._receiveMsg)
+        self._conn.call_later(10, self.timerEnd)
         
         # The library gives us an event loop built-in, so lets use it!
         # This program only responds to messages on the rabbitmq, so no
@@ -48,7 +50,17 @@ class OverMind:
         
         sys.exit(1)
         
-        
+    def timerEnd(self):
+        for job in self._running_jobs:
+            if job.ready():
+                try:
+                    job.get()
+                    self._running_jobs.remove(job)
+                except Exception as e:
+                    logging.exception("Got exception from job")
+                    raise
+        self._conn.call_later(10, self.timerEnd)
+
 
     def createConnection(self):
         self.parameters = pika.URLParameters(self._config['AMQP']['url'])
@@ -89,6 +101,7 @@ class OverMind:
             try:
                 result.get(1)
             except TimeoutError as te:
+                self._running_jobs.append(result)
                 pass
             
         elif msg_body['kind'] == 'transfer_summary':
@@ -97,6 +110,7 @@ class OverMind:
             try:
                 result.get(1)
             except TimeoutError as te:
+                self._running_jobs.append(result)
                 pass
         
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)

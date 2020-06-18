@@ -3,7 +3,8 @@ import json
 import sys
 import logging
 from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search
+from elasticsearch_dsl import Search, A
+from elasticsearch_dsl.aggs import Composite
 from elasticsearch_dsl.query import Q
 import traceback
 from . import replayer
@@ -140,38 +141,64 @@ class SummaryReplayer(replayer.Replayer):
         # Round the date up, so we get the entire last day they requested.
         from_date = dateutil.parser.parse(from_date).date()
         to_date = dateutil.parser.parse(to_date).date() + datetime.timedelta(days=1)
-        
+
         logging.debug("Beginning search")
         s = Search(using=client, index=self._config['ElasticSearch']['raw_index'])
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
-        s = s.query('bool', must=[Q('match', _type=self._config['ElasticSearch']['raw_type'])])
-        
+
         # Fill in the unique terms and metrics
         unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["GPUs", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
         metrics = [["WallDuration", 0], ["CpuDuration_user", 0], ["CpuDuration_system", 0], ["CoreHours", 0], ["Njobs", 1], ["CpuDuration", 0]]
 
+        terms_dict = {item[0]: item[1] for item in unique_terms}
+
         # If the terms are missing, set as "N/A"
-        curBucket = s.aggs.bucket(unique_terms[0][0], 'date_histogram', field=unique_terms[0][0], interval="day")
+        composite_buckets = []
+        composite_buckets.append({unique_terms[0][0]: A('date_histogram', field=unique_terms[0][0], interval="day")})
         new_unique_terms = unique_terms[1:]
 
-        for term in new_unique_terms:
-        	curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=(2**31)-1)
+        # First 3 terms, use composite
+        for term in new_unique_terms[:3]:
+            composite_buckets.append({term[0]: A('terms', field=term[0], missing_bucket=True)})
 
-        for metric in metrics:
-        	curBucket.metric(metric[0], 'sum', field=metric[0], missing=metric[1])
-            
-        response = s.execute()
-            
-        
+        new_unique_terms = new_unique_terms[3:]
+
+        def scan_aggs(search, source_aggs, size=10):
+            """
+            Helper function used to iterate over all possible bucket combinations of
+            ``source_aggs``.  Uses the ``composite`` aggregation under the hood to perform this.
+            """
+            def run_search(**kwargs):
+                s = search[:0]
+                curBucket = s.aggs.bucket('comp', 'composite', sources=source_aggs, size=size, **kwargs)
+                for term in new_unique_terms:
+                    curBucket = curBucket.bucket(term[0], 'terms', field=term[0], missing=term[1], size=(2**31)-1)
+                for metric in metrics:
+                    curBucket.metric(metric[0], 'sum', field=metric[0], missing=metric[1])
+                return s.execute()
+
+            response = run_search()
+            while response.aggregations.comp.buckets:
+                for b in response.aggregations.comp.buckets:
+                    yield b
+                if 'after_key' in response.aggregations.comp:
+                    after = response.aggregations.comp.after_key
+                else:
+                    after= response.aggregations.comp.buckets[-1].key
+                response = run_search(after=after)
+
+        response = scan_aggs(s, composite_buckets, size=100)
+
+
         def recurseBucket(curData, curBucket, index, data):
             """
             Recursively process the buckets down the nested aggregations
-            
+
             :param curData: Current 
             :param bucket curBucket: A elasticsearch bucket object
             :param int index: Index of the unique_terms that we are processing
             """
-            curTerm = unique_terms[index][0]
+            curTerm = new_unique_terms[index][0]
 
             # Check if we are at the end of the list
             if not curBucket[curTerm]['buckets']:
@@ -183,7 +210,7 @@ class SummaryReplayer(replayer.Replayer):
                 for bucket in curBucket[curTerm]['buckets']:
                     nowData = copy.deepcopy(curData)
                     nowData[curTerm] = bucket['key']
-                    if index == (len(unique_terms) - 1):
+                    if index == (len(new_unique_terms) - 1):
                         # reached the end of the unique terms
                         for metric in metrics:
                             nowData[metric[0]] = bucket[metric[0]].value
@@ -194,17 +221,14 @@ class SummaryReplayer(replayer.Replayer):
                         recurseBucket(nowData, bucket, index+1, data)
 
 
-        	
-        
-        # We only want to hold onto 1 day's worth of summaries
-        print(len(response.aggregations['EndTime']['buckets']))
-        for day in response.aggregations['EndTime']['buckets']:
-            data = []
-            recurseBucket({"EndTime": day['key_as_string']}, day, 1, data)
-            yield data
-    
+        for key in response:
+            for processor in key['Processors']['buckets']:
+                data = []
+                recurseBucket({"Processors": processor['key']}, processor, 1, data)
+                for record in data:
+                    record.update(key['key'].to_dict())
+                    for term, value in record.items():
+                        if value is None and term in terms_dict:
+                            record[term] = terms_dict[term]
+                    yield record
 
-        
-        # Aggregate on njobs, WallDuration, CpuUserDuration, CpuSystemDuration
-        # Or, unique keys on EndTime (day), VO, ProjectName, CommonName, DN, ResourceType, HostDescription, ApplicationExitCode, Grid, Cores
-        
