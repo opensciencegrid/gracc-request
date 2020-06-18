@@ -148,9 +148,9 @@ class TransferSummary(summary_replayer.SummaryReplayer):
 
 
         for key in response:
-            for processor in key['Processors']['buckets']:
+            for commonName in key['CommonName']['buckets']:
                 data = []
-                recurseBucket({"Processors": processor['key']}, processor, 1, data)
+                recurseBucket({"CommonName": commonName['key']}, commonName, 1, data)
                 for record in data:
                     record.update(key['key'].to_dict())
                     for term, value in record.items():

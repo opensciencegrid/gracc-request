@@ -85,12 +85,11 @@ class SummaryReplayer(replayer.Replayer):
         # Query elsaticsearch and send the data to the destination
         logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
         try:
-            for day in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
-                for record in day:
-                    for c in self.corrections:
-                        c.correct(record)
-                    self.addProperties(record)
-                    self.sendMessage(json.dumps(record))
+            for record in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
+                for c in self.corrections:
+                    c.correct(record)
+                self.addProperties(record)
+                self.sendMessage(json.dumps(record))
         except Exception as e:
             logging.error("Exception caught in query ES: %s" % str(e))
             logging.error(traceback.format_exc())
