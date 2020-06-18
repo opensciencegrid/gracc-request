@@ -229,5 +229,7 @@ class SummaryReplayer(replayer.Replayer):
                     for term, value in record.items():
                         if value is None and term in terms_dict:
                             record[term] = terms_dict[term]
+                    # Convert to iso 8601 date format
+                    record['EndTime'] = datetime.datetime.fromtimestamp(record['EndTime'] / 1000).isoformat()
                     yield record
 
