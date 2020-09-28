@@ -74,7 +74,7 @@ class TestSendRecv(unittest.TestCase):
             if body_parsed['stage'] == "finished":
                 self.conn.remove_timeout(self.timer_id)
                 # Since everything is async, give the library 1 more second to get last messages
-                self.conn.add_timeout(1, deadline_reached)
+                self.conn.call_later(1, deadline_reached)
             
             
 
@@ -95,7 +95,7 @@ class TestSendRecv(unittest.TestCase):
         
 
                                                    
-        self.timer_id = self.conn.add_timeout(10, deadline_reached)   
+        self.timer_id = self.conn.call_later(10, deadline_reached)
         
         self.channel.start_consuming()
 

@@ -86,7 +86,7 @@ class Client:
             def deadline_reached():
                 #print "Deadline reached"
                 self.channel.stop_consuming()
-            self.conn.add_timeout(1, deadline_reached)
+            self.conn.call_later(1, deadline_reached)
         
     def _getDataMessage(self, channel, method, properties, body):
         """
@@ -106,7 +106,7 @@ class Client:
             self.channel.stop_consuming()
         else:
             self.last_messages = self.messages_received
-            self.timer_id = self.conn.add_timeout(300, self._checkStatus)   
+            self.timer_id = self.conn.call_later(300, self._checkStatus)
             
         
         
@@ -166,7 +166,7 @@ class Client:
         
 
         # Begin the checkStatus timer
-        self.timer_id = self.conn.add_timeout(300, self._checkStatus)   
+        self.timer_id = self.conn.call_later(300, self._checkStatus)
         
         self.channel.start_consuming()
         
