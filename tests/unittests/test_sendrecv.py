@@ -83,8 +83,8 @@ class TestSendRecv(unittest.TestCase):
             self.channel.stop_consuming()
 
 
-        self.channel.basic_consume(getMessage, "test_queue")
-        self.channel.basic_consume(getControlMessage, self.control_queue)
+        self.channel.basic_consume(queue="test_queue", on_message_callback=getMessage)
+        self.channel.basic_consume(queue=self.control_queue, on_message_callback=getControlMessage)
 
         
         self.channel.basic_publish('gracc.osg.requests',

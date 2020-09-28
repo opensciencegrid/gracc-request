@@ -153,9 +153,9 @@ class Client:
         
         # Now listen to the queues
         self.callbackDataMessage = getMessage
-        self.channel.basic_consume(self._getControlMessage, self.control_queue)
+        self.channel.basic_consume(queue=self.control_queue, on_message_callback=self._getControlMessage)
         if not remote_destination:
-            self.channel.basic_consume(self._getDataMessage, self.data_queue)
+            self.channel.basic_consume(queue=self.data_queue, on_message_callback=self._getDataMessage)
 
         # Send the message
         self.channel.basic_publish(self.exchange,
