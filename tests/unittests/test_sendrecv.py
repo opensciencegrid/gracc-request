@@ -44,7 +44,7 @@ class TestSendRecv(unittest.TestCase):
         control_exchange = "control-exchange-%s" % self._createName()
         routing_key = "control-key-%s" % self._createName()
         self.channel.queue_declare(queue=self.control_queue, durable=False, exclusive=True, auto_delete=True)
-        self.channel.exchange_declare(control_exchange, exchange_type='direct', durable=False, auto_delete=True)
+        self.channel.exchange_declare(exchange=control_exchange, exchange_type='direct', durable=False, auto_delete=True)
         self.channel.queue_bind(queue=self.control_queue, exchange=control_exchange, routing_key=routing_key)
         
         self.msg_json = json.loads(self.msg)
