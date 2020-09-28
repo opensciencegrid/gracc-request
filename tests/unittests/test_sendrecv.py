@@ -44,7 +44,7 @@ class TestSendRecv(unittest.TestCase):
         control_exchange = "control-exchange-%s" % self._createName()
         routing_key = "control-key-%s" % self._createName()
         self.channel.queue_declare(queue=self.control_queue, durable=False, exclusive=True, auto_delete=True)
-        self.channel.exchange_declare(control_exchange, exchange_type='direct', durable=False, auto_delete=True)
+        self.channel.exchange_declare(exchange=control_exchange, exchange_type='direct', durable=False, auto_delete=True)
         self.channel.queue_bind(queue=self.control_queue, exchange=control_exchange, routing_key=routing_key)
         
         self.msg_json = json.loads(self.msg)
@@ -74,7 +74,7 @@ class TestSendRecv(unittest.TestCase):
             if body_parsed['stage'] == "finished":
                 self.conn.remove_timeout(self.timer_id)
                 # Since everything is async, give the library 1 more second to get last messages
-                self.conn.add_timeout(1, deadline_reached)
+                self.conn.call_later(1, deadline_reached)
             
             
 
@@ -83,8 +83,8 @@ class TestSendRecv(unittest.TestCase):
             self.channel.stop_consuming()
 
 
-        self.channel.basic_consume(getMessage, "test_queue")
-        self.channel.basic_consume(getControlMessage, self.control_queue)
+        self.channel.basic_consume(queue="test_queue", on_message_callback=getMessage)
+        self.channel.basic_consume(queue=self.control_queue, on_message_callback=getControlMessage)
 
         
         self.channel.basic_publish('gracc.osg.requests',
@@ -95,7 +95,7 @@ class TestSendRecv(unittest.TestCase):
         
 
                                                    
-        self.timer_id = self.conn.add_timeout(10, deadline_reached)   
+        self.timer_id = self.conn.call_later(10, deadline_reached)
         
         self.channel.start_consuming()
 

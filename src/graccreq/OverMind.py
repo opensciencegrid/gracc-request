@@ -37,7 +37,7 @@ class OverMind:
         # Start up the pool processes
         self._pool = Pool(processes=4)
         self.createConnection()
-        self._chan.basic_consume(self._config["AMQP"]['queue'], self._receiveMsg)
+        self._chan.basic_consume(queue=self._config["AMQP"]['queue'], on_message_callback=self._receiveMsg)
         self._conn.call_later(10, self.timerEnd)
         
         # The library gives us an event loop built-in, so lets use it!
@@ -71,7 +71,7 @@ class OverMind:
         # TODO: capture exit codes on all these call
         self._chan.exchange_declare(exchange=self._config["AMQP"]['exchange'], exchange_type='direct')
         self._chan.queue_declare(queue=self._config["AMQP"]['queue'])
-        self._chan.queue_bind(self._config["AMQP"]['queue'], self._config["AMQP"]['exchange'])
+        self._chan.queue_bind(queue=self._config["AMQP"]['queue'], exchange=self._config["AMQP"]['exchange'])
         #self._chan.queue_declare(queue="request_raw", durable=True, auto_delete=False, exclusive=False)
         
         
