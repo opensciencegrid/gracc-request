@@ -12,7 +12,7 @@ class OIMVOInfo(object):
     Class to obtain and store VO info from OIM
     """
 
-    oim_url = "https://my.opensciencegrid.org/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
+    oim_url = "https://topology.opensciencegrid.org/vosummary/xml?summary_attrs_showfield_of_science=on&all_vos=on&active=on&active_value=1&oasis_value=1&sort_key=name"
 
     # Put any non-nested element before the last item in this list.  The last
     # item is a dict that holds all nested elements and the structure
