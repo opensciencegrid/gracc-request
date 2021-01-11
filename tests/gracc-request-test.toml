@@ -16,7 +16,7 @@ transfer_type = 'Storage'
 transfer_index = 'gracc.osg-transfer.raw-*'
 
 [OIM_URLs]
-voinfo = 'https://my.opensciencegrid.org/vosummary/xml?active=on&active_value=1&oasis_value=1'
-oimtopology = 'https://my.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on'
-projects = 'https://my.opensciencegrid.org/miscproject/xml'
-nsfscience = 'https://my.opensciencegrid.org/nsf-science-mapping.csv'
+voinfo = 'https://topology.opensciencegrid.org/vosummary/xml?active=on&active_value=1&oasis_value=1'
+oimtopology = 'https://topology.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on'
+projects = 'https://topology.opensciencegrid.org/miscproject/xml'
+nsfscience = 'https://topology.opensciencegrid.org/nsf-science-mapping.csv'

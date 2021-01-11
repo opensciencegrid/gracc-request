@@ -43,7 +43,7 @@ def add_matched_from(level):
 
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
-    oim_url = "https://my.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on"
+    oim_url = "https://topology.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on"
 
     def __init__(self, url=None):
         if url is not None:
