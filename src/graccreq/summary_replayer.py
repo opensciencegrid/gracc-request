@@ -92,7 +92,7 @@ class SummaryReplayer(replayer.Replayer):
                 self.sendMessage(json.dumps(record))
         except Exception as e:
             logging.error("Exception caught in query ES: %s" % str(e))
-            logging.error(traceback.format_exc())
+            logging.exception("Failed message: {}".format(json.dumps(record)))
             raise e
             
         
@@ -154,7 +154,7 @@ class SummaryReplayer(replayer.Replayer):
 
         # If the terms are missing, set as "N/A"
         composite_buckets = []
-        composite_buckets.append({unique_terms[0][0]: A('date_histogram', field=unique_terms[0][0], interval="day")})
+        composite_buckets.append({unique_terms[0][0]: A('date_histogram', field=unique_terms[0][0], calendar_interval="1d", missing_bucket=True)})
         new_unique_terms = unique_terms[1:]
 
         # First 3 terms, use composite

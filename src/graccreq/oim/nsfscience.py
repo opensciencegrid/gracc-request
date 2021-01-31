@@ -37,7 +37,7 @@ class NSFScience(object):
 
         :returns: Minimal dict with attributes to add
         """
-        if 'OIM_FieldOfScience' in record:
+        if 'OIM_FieldOfScience' in record and record['OIM_FieldOfScience'] and isinstance(record['OIM_FieldOfScience'], str):
             if record['OIM_FieldOfScience'].lower() in self.mapping_dict:
                 return {'OIM_NSFFieldOfScience': self.mapping_dict[record['OIM_FieldOfScience'].lower()]}
 
