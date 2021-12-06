@@ -129,7 +129,26 @@ class SummaryReplayer(replayer.Replayer):
         # set it to Host_description, if that's in the record
         if 'OIM_Site' not in record and 'Host_description' in record:
             record['OIM_Site'] = record['Host_description']
-        
+
+        # Calculate the APEL Normalized WallDuration
+        if 'OIM_WLCGAPELNormalFactor' in record and 'WallDuration' in record and 'Processors' in record:
+            record['OIM_WLCGAPELNormalizedWallDuration'] = record['OIM_WLCGAPELNormalFactor'] \
+                                                           * record['WallDuration'] * record['Processors']
+        # Calculate the normalized CpuDuration
+        if ('OIM_WLCGAPELNormalFactor' in record
+                and 'CpuDuration_user' in record
+                and record['CpuDuration_user'] == 0
+                and 'CpuDuration_system' in record
+                and record['CpuDuration_system'] == 0
+                and 'CpuDuration' in record
+                and record['CpuDuration'] != 0):
+            record['OIM_WLCGAPELNormalizedCpuDuration'] = record['OIM_WLCGAPELNormalFactor'] * record['CpuDuration']
+        elif ('OIM_WLCGAPELNormalFactor' in record
+                and 'CpuDuration_user' in record
+                and 'CpuDuration_system' in record):
+            record['OIM_WLCGAPELNormalizedCpuDuration'] = record['OIM_WLCGAPELNormalFactor'] \
+                                                          * (record['CpuDuration_user'] + record['CpuDuration_system'])
+
         return record
         
     def _queryElasticsearch(self, from_date, to_date, query):
@@ -145,6 +164,8 @@ class SummaryReplayer(replayer.Replayer):
         logging.debug("Beginning search")
         s = Search(using=client, index=self._config['ElasticSearch']['raw_index'])
         s = s.filter('range', **{'EndTime': {'from': from_date, 'to': to_date }})
+        if query:
+            s = s.query(query)
 
         # Fill in the unique terms and metrics
         unique_terms = [["EndTime", 0], ["VOName", "N/A"], ["ProjectName", "N/A"], ["DN", "N/A"], ["Processors", 1], ["GPUs", 0], ["ResourceType", "N/A"], ["CommonName", "N/A"], ["Host_description", "N/A"], ["Resource_ExitCode", 0], ["Grid", "N/A"], ["ReportableVOName", "N/A"], ["ProbeName", "N/A"], ["SiteName", "N/A"]]
