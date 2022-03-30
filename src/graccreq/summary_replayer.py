@@ -151,7 +151,7 @@ class SummaryReplayer(replayer.Replayer):
 
         # Calculate the GPUHours
         if 'WallDuration' in record and 'GPUs' in record:
-            record['GPUHours'] = (record['WallDuration'] / 3600) * record['GPUs']
+            record['GPUHours'] = (float(record['WallDuration']) / 3600) * float(record['GPUs'])
 
         return record
         
