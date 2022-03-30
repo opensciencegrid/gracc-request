@@ -149,6 +149,10 @@ class SummaryReplayer(replayer.Replayer):
             record['OIM_WLCGAPELNormalizedCpuDuration'] = record['OIM_WLCGAPELNormalFactor'] \
                                                           * (record['CpuDuration_user'] + record['CpuDuration_system'])
 
+        # Calculate the GPUHours
+        if 'WallDuration' in record and 'GPUs' in record:
+            record['GPUHours'] = (record['WallDuration'] / 3600) * record['GPUs']
+
         return record
         
     def _queryElasticsearch(self, from_date, to_date, query):
