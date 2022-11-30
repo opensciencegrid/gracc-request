@@ -36,6 +36,14 @@ source_field = 'CorrectedHostDescription'
 dest_field = 'OIM_Site'
 regex = true
 
+[[Corrections]]
+index = 'gracc.corrections'
+doc_type = 'reportablevoname'
+match_fields = ['ReportableVOName']
+source_field = 'CorrectedReportableVOName'
+dest_field = 'CorrectedReportableVOName'
+force_overwrite = true
+
 [OIM_URLs]
 voinfo = 'https://topology.opensciencegrid.org/vosummary/xml?active=on&active_value=1&oasis_value=1'
 oimtopology = 'https://topology.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on'
