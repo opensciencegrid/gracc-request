@@ -16,7 +16,7 @@ BuildRequires:  python2-rpm-macros
 BuildRequires:  epel-rpm-macros
 BuildRequires:  systemd
 Requires:       python2-pika
-Requires:       python-elasticsearch-dsl
+Requires:       python3-opensearch-py
 Requires:       python-dateutil
 Requires:       python-toml
 Requires:       python2-filelock

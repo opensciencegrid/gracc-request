@@ -1,5 +1,4 @@
-elasticsearch < 8
-elasticsearch-dsl < 8
+opensearch-py
 pika
 python-dateutil
 six

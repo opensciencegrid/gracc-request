@@ -2,10 +2,11 @@ import pika
 import json
 import sys
 import logging
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search, A
-from elasticsearch_dsl.aggs import Composite
-from elasticsearch_dsl.query import Q
+from opensearchpy import OpenSearch, Search, A
+#from elasticsearch import Elasticsearch
+#from elasticsearch_dsl import Search, A
+#from elasticsearch_dsl.aggs import Composite
+#from elasticsearch_dsl.query import Q
 import traceback
 from . import replayer
 import dateutil
@@ -86,9 +87,9 @@ class SummaryReplayer(replayer.Replayer):
         logging.info("Sending response to %s with routing key %s" % (self.msg['destination'], self.msg['routing_key']))
         try:
             for record in self._queryElasticsearch(self.msg['from'], self.msg['to'], None):
-                self.addProperties(record)
                 for c in self.corrections:
                     c.correct(record)
+                self.addProperties(record)
                 self.sendMessage(json.dumps(record))
         except Exception as e:
             logging.error("Exception caught in query ES: %s" % str(e))
@@ -158,7 +159,7 @@ class SummaryReplayer(replayer.Replayer):
     def _queryElasticsearch(self, from_date, to_date, query):
         logging.debug("Connecting to ES")
         es_uri = self._config['ElasticSearch'].get('uri', 'http://localhost:9200')
-        client = Elasticsearch(es_uri, timeout=300)
+        client = OpenSearch(es_uri, timeout=300)
         
         # For summaries, we only summarize full days, so strip the time from the from & to
         # Round the date up, so we get the entire last day they requested.
