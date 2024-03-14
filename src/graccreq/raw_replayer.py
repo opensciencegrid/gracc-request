@@ -2,8 +2,8 @@ import pika
 import json
 import sys
 import logging
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search
+from opensearchpy import OpenSearch
+from opensearchpy import Search
 import traceback
 from . import replayer
 
@@ -50,7 +50,7 @@ class RawReplayer(replayer.Replayer):
         
     def _queryElasticsearch(self, from_date, to_date, query):
         logging.debug("Connecting to ES")
-        client = Elasticsearch()
+        client = OpenSearch()
         
         logging.debug("Beginning search")
         s = Search(using=client, index=self._config['ElasticSearch']['raw_index'])
