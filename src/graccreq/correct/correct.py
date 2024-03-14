@@ -1,7 +1,10 @@
 import logging
-from elasticsearch import Elasticsearch
-from elasticsearch.helpers import scan
-from elasticsearch.exceptions import ElasticsearchException
+from opensearchpy import OpenSearch
+from opensearchpy.helpers import scan
+from opensearchpy.exceptions import OpenSearchException
+#from elasticsearch import Elasticsearch
+#from elasticsearch.helpers import scan
+#from elasticsearch.exceptions import ElasticsearchException
 import re
 
 logger = logging.getLogger(__name__)
@@ -42,12 +45,12 @@ class Corrections:
         """
         self.corrections = {}
         try:
-            client = Elasticsearch(self.es_uri, timeout=300)
+            client = OpenSearch(self.es_uri, timeout=300)
             query = {"query": {"match": {"type": self.es_doc_type}}}
             s = scan(client=client, index=self.es_index, query=query, scroll='10m')
             for doc in s:
                 self._add_correction(doc)
-        except ElasticsearchException as e:
+        except OpenSearchException as e:
             logger.error('unable to fetch corrections: {}'.format(e))
         else:
             logger.info('loaded {} corrections from {}/{}/{}'.

@@ -2,10 +2,11 @@ import pika
 import json
 import sys
 import logging
-from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search, A
-from elasticsearch_dsl.aggs import Composite
-from elasticsearch_dsl.query import Q
+from opensearchpy import OpenSearch, Search, A
+#from elasticsearch import Elasticsearch
+#from elasticsearch_dsl import Search, A
+#from elasticsearch_dsl.aggs import Composite
+#from elasticsearch_dsl.query import Q
 import traceback
 from . import replayer
 import dateutil
