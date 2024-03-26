@@ -27,6 +27,7 @@ class OverMind:
             self._config = toml.loads(config_file.read())
         
         logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger("pika").setLevel(logging.WARNING)
 
     
     def run(self):
