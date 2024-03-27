@@ -1,5 +1,5 @@
 
-from multiprocessing import Pool, TimeoutError
+import multiprocessing
 import json
 import pika
 import sys
@@ -28,6 +28,7 @@ class OverMind:
         
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger("pika").setLevel(logging.WARNING)
+        multiprocessing.log_to_stderr()
 
     
     def run(self):
@@ -36,7 +37,7 @@ class OverMind:
         """
         
         # Start up the pool processes
-        self._pool = Pool(processes=4)
+        self._pool = multiprocessing.Pool(processes=4)
         self.createConnection()
         self._chan.basic_consume(queue=self._config["AMQP"]['queue'], on_message_callback=self._receiveMsg)
         self._conn.call_later(10, self.timerEnd)
@@ -101,7 +102,7 @@ class OverMind:
             result = self._pool.apply_async(SummaryReplayerFactory, (msg_body, self._config['AMQP']['url'], self._config))
             try:
                 result.get(1)
-            except TimeoutError as te:
+            except multiprocessing.TimeoutError as te:
                 self._running_jobs.append(result)
                 pass
             
@@ -110,7 +111,7 @@ class OverMind:
             result = self._pool.apply_async(TransferSummaryFactory, (msg_body, self._config['AMQP']['url'], self._config))
             try:
                 result.get(1)
-            except TimeoutError as te:
+            except multiprocessing.TimeoutError as te:
                 self._running_jobs.append(result)
                 pass
         
