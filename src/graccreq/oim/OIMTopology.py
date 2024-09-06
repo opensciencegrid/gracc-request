@@ -162,6 +162,7 @@ class OIMTopology(object):
         # XPaths for searches by Resource Group
         rg_pathdictionary = {
             'OIM_Facility': './Facility/Name',
+            'OIM_InstitutionID': './Facility/InstitutionID',
             'OIM_Site': './Site/Name',
             'OIM_ResourceGroup': './GroupName'}
 
@@ -331,7 +332,7 @@ class OIMTopology(object):
         for resourcename, rdict in self.resourcedict.items():
             if 'OIM_ResourceGroup' in rdict and \
                             rdict['OIM_ResourceGroup'].lower() == rgname.lower():
-                return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility', 'OIM_ResourceGroup')}
+                return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility', 'OIM_InstitutionID', 'OIM_ResourceGroup')}
         else:
             return {}
 
