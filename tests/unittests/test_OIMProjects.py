@@ -19,6 +19,7 @@ class TestOIMProjects(unittest.TestCase):
         self.assertEqual(stuff["OIM_BroadFieldOfScience"], 'Physical sciences')
         self.assertEqual(stuff["OIM_MajorFieldOfScience"], 'Physics')
         self.assertEqual(stuff["OIM_DetailedFieldOfScience"], None)
+        self.assertEqual(stuff["OIM_InstitutionName"], "University of New Mexico")
 
         return True
 

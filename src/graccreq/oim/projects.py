@@ -1,7 +1,9 @@
+import json
 import urllib.request, urllib.error, urllib.parse
 import xml.etree.ElementTree as ET
 
 from graccreq.oim.field_of_science import FieldOfScience
+from graccreq.oim.institutions import Institutions
 
 
 class OIMProjects(object):
@@ -11,6 +13,7 @@ class OIMProjects(object):
     wanted_attributes = ['Name', 'PIName', 'Organization', 'Department', 'FieldOfScience', 'InstitutionID', 'FieldOfScienceID']
 
     field_of_science = FieldOfScience()
+    institutions = Institutions()
 
     def __init__(self, url=None):
         """
@@ -27,8 +30,6 @@ class OIMProjects(object):
         req = urllib.request.Request(self.oim_url, headers=header)
         oim_xml = urllib.request.urlopen(req)
         self._processProjects(oim_xml)
-
-
 
     def _processProjects(self, oim_xml):
 
@@ -50,11 +51,15 @@ class OIMProjects(object):
             if 'OIM_Name' in new_dict:
                 self.dict_name[new_dict['OIM_Name'].lower()] = new_dict
                 del new_dict['OIM_Name']
+            # Here we convert the FieldOfScienceID into their descriptive names
             if 'OIM_FieldOfScienceID' in new_dict:
                 [broad_fos, major_fos, detailed_fos] = self.field_of_science.map_id_to_fields_of_science(new_dict['OIM_FieldOfScienceID'])
                 new_dict['OIM_BroadFieldOfScience'] = broad_fos
                 new_dict['OIM_MajorFieldOfScience'] = major_fos
                 new_dict['OIM_DetailedFieldOfScience'] = detailed_fos
+            # Here we use the InstitutionID to get the approved name
+            if 'OIM_InstitutionID' in new_dict:
+                new_dict['OIM_InstitutionName'] = self.institutions[new_dict['OIM_InstitutionID']]['name']
 
     def parseDoc(self, doc):
         """
