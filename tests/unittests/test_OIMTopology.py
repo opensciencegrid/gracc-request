@@ -11,6 +11,11 @@ class BasicOIMTopologyTests(unittest.TestCase):
     def setUpClass(cls):
         cls.topology = OIMTopology.OIMTopology()
 
+    def test_works_before_topology_change(self):
+        """Test that we can push this update before topology includes the InstitutionID field"""
+        testdict = self.topology.get_information_by_fqdn('jobsub01.fnal.gov')
+
+
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
         testdict = self.topology.get_information_by_fqdn('jobsub01.fnal.gov')

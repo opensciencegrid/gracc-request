@@ -5,6 +5,7 @@ import string
 import pandas as pd
 
 # Turn this path relative to this file into an absolute path with python
+# File can be downloaded here => https://ncses.nsf.gov/pubs/nsf24300/assets/technical-notes/tables/nsf24300-taba-005.xlsx
 SED_CIP_FILE_RELATIVE = "./static_data/SED-CIP-2022.xlsx"
 SED_CIP_FILE = os.path.join(os.path.dirname(__file__), SED_CIP_FILE_RELATIVE)
 
