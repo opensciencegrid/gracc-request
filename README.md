@@ -78,5 +78,42 @@ And the ES document would look like:
 
 In this case, it would match the `Host_description` field of the incoming record with the regular expression in the ES record.  If it is a match, then it would set `OIM_Site` to the value in `Corrected_OIM_Site`.
 
+### ID Mappings
 
+#### InstitutionID
 
+All project and facilities have a InstitutionID assigned by the OSG. You can find these
+values in the [OSG Institutions Webpage](https://topology-institutions.osg-htc.org/ui/).
+
+These IDs hold the pointer to the facilities accepted name and some metadata that can be pulled in later. 
+
+A sample of this metadata can be seen below. 
+
+```json
+{
+    "name": "Albert Einstein College of Medicine",
+    "id": "https://osg-htc.org/iid/yzcm7hs9f1d0",
+    "ror_id": "https://ror.org/05cf8a891",
+    "unitid": "385415",
+    "longitude": -73.846327,
+    "latitude": 40.852847,
+    "ipeds_metadata": {
+        "website_address": "www.einsteinmed.edu/",
+        "historically_black_college_or_university": false,
+        "tribal_college_or_university": false,
+        "program_length": "Four or more years",
+        "control": "Private not-for-profit",
+        "state": "NY",
+        "institution_size": "1,000 - 4,999"
+    }
+}
+```
+
+#### FieldOfScienceID
+
+Field of Science IDs are pulled from the NSF created SED-CIP list. This list is a comprehensive list 
+of all fields of science that are recognized by the NSF along with three tiers of categorization. 
+
+You can find the Excel mapping spreadsheet here -> https://ncses.nsf.gov/pubs/nsf24300/assets/technical-notes/tables/nsf24300-taba-005.xlsx
+
+In the future if the SED-CIP list is updated there is historical precedent for them providing a mapping file to the new ids. 

@@ -5,3 +5,6 @@ six
 toml
 urllib3
 filelock
+pandas
+openpyxl
+setuptools

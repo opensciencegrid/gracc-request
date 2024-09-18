@@ -8,6 +8,8 @@ import pickle
 import filelock
 import logging
 
+from graccreq.oim.institutions import Institutions
+
 SEC_IN_DAY = 86400
 cachefile = '/tmp/resourcedict.pickle'
 lockfile = '/tmp/lockfile_OIM_cache'
@@ -44,6 +46,8 @@ def add_matched_from(level):
 class OIMTopology(object):
     """Class to hold and sort through relevant OIM Topology information"""
     oim_url = "https://topology.opensciencegrid.org/rgsummary/xml?gridtype=on&gridtype_1=on"
+
+    institutions = Institutions()
 
     def __init__(self, url=None):
         if url is not None:
@@ -162,6 +166,7 @@ class OIMTopology(object):
         # XPaths for searches by Resource Group
         rg_pathdictionary = {
             'OIM_Facility': './Facility/Name',
+            'OIM_InstitutionID': './Facility/InstitutionID',
             'OIM_Site': './Site/Name',
             'OIM_ResourceGroup': './GroupName'}
 
@@ -206,6 +211,11 @@ class OIMTopology(object):
             self.store_VOOwnership_information(resource_elt)
         returndict['Contacts'] = \
             self.store_Contact_information(resource_elt)
+
+        # Add the institution name
+        oim_institution_name = self.institutions.get(returndict.get('OIM_InstitutionID'), {}).get('name')
+        if oim_institution_name:
+            returndict['OIM_InstitutionName'] = oim_institution_name
 
         return returndict
 
@@ -331,7 +341,7 @@ class OIMTopology(object):
         for resourcename, rdict in self.resourcedict.items():
             if 'OIM_ResourceGroup' in rdict and \
                             rdict['OIM_ResourceGroup'].lower() == rgname.lower():
-                return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility', 'OIM_ResourceGroup')}
+                return {key: rdict[key] for key in ('OIM_Site', 'OIM_Facility', 'OIM_InstitutionID', 'OIM_ResourceGroup')}
         else:
             return {}
 

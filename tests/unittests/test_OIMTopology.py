@@ -11,11 +11,18 @@ class BasicOIMTopologyTests(unittest.TestCase):
     def setUpClass(cls):
         cls.topology = OIMTopology.OIMTopology()
 
+    def test_works_before_topology_change(self):
+        """Test that we can push this update before topology includes the InstitutionID field"""
+        testdict = self.topology.get_information_by_fqdn('jobsub01.fnal.gov')
+
+
     def test_fqdn(self):
         """OIMTopology match by gracc probe to topology FQDN"""
         testdict = self.topology.get_information_by_fqdn('jobsub01.fnal.gov')
         self.assertEqual(testdict['OIM_Facility'], 'Fermi National Accelerator'
                                                ' Laboratory')
+        self.assertEqual(testdict['OIM_InstitutionID'], 'https://osg-htc.org/iid/ik4s3ql8u1j7')
+        self.assertEqual(testdict['OIM_InstitutionName'], 'Fermi National Accelerator Laboratory')
         self.assertEqual(testdict['OIM_Site'], 'FermiGrid')
         self.assertEqual(testdict['OIM_ResourceGroup'], 'GPGRID')
         self.assertEqual(testdict['OIM_Resource'],'FNAL_JOBSUB_01')
@@ -26,6 +33,8 @@ class BasicOIMTopologyTests(unittest.TestCase):
         """OIMTopology match by gracc SiteName to topology resource"""
         testdict = self.topology.get_information_by_resource('AGLT2_CE_2')
         self.assertEqual(testdict['OIM_Facility'], 'University of Michigan')
+        self.assertEqual(testdict['OIM_InstitutionID'], 'https://osg-htc.org/iid/4ocf9kvq30fn')
+        self.assertEqual(testdict['OIM_InstitutionName'], 'University of Michigan–Ann Arbor')
         self.assertEqual(testdict['OIM_Site'], 'AGLT2')
         self.assertEqual(testdict['OIM_ResourceGroup'], 'AGLT2')
         self.assertEqual(testdict['OIM_Resource'],'AGLT2_CE_2')
@@ -133,7 +142,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
 
 
     def test_fallbacktosite(self):
-        """Probe name is wrong, so should match on site name to Resource 
+        """Probe name is wrong, so should match on site name to Resource
         Group"""
         fail_probe = self.topology.generate_dict_for_gracc(
             self.testdoc_fail_probe)
@@ -247,7 +256,7 @@ class GRACCDictTests(BasicOIMTopologyTests):
         self.assertTrue(um)
         self.assertEqual(rg['OIM_Match'], 'Host_description-Resource')
         return True
-    
+
     def test_payload_fail(self):
         """Payload record - should fail to match"""
         fail = self.topology.generate_dict_for_gracc(self.testdoc_payload_fail)
