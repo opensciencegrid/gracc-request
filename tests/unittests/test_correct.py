@@ -3,11 +3,12 @@ import unittest
 from graccreq.correct import Corrections
 
 class MockCorrections(Corrections):
-    def __init__(self, regex=False):
+    def __init__(self, regex=False, force_overwrite=False):
         self.corrections = {}
         self.match_fields = []
         self.dest_field = ''
         self.regex = regex
+        self.force_overwrite = force_overwrite
 
 class TestCorrections(unittest.TestCase):
     def test_simple_corrections(self):
@@ -54,6 +55,34 @@ class TestCorrections(unittest.TestCase):
 
         return True
 
+    def test_new_field_corrections(self):
+        c = MockCorrections()
+        c.match_fields=['ReportableVOName']
+        c.source_field='CorrectedReportableVOName'
+        c.dest_field='CorrectedReportableVOName'
+
+        c._add_correction({'_source': {
+            'ReportableVOName': 'FERMILAB',
+            'CorrectedReportableVOName': 'Fermilab',
+        }})
+
+        doc = c.correct({'ReportableVOName': 'FERMILAB'})
+        self.assertEqual(doc['CorrectedReportableVOName'], "Fermilab")
+
+    def test_force_new_field_corrections(self):
+        c = MockCorrections(force_overwrite=True)
+        c.match_fields=['ReportableVOName']
+        c.source_field='CorrectedReportableVOName'
+        c.dest_field='CorrectedReportableVOName'
+
+        # Add a correction that won't match
+        c._add_correction({'_source': {
+            'ReportableVOName': 'FERMILAB',
+            'CorrectedReportableVOName': 'Fermilab',
+        }})
+
+        doc = c.correct({'ReportableVOName': 'ATLAS'})
+        self.assertEqual(doc['CorrectedReportableVOName'], "ATLAS")
 
     def test_regex_corrections(self):
         c = MockCorrections(regex=True)
